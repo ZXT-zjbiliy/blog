@@ -1,0 +1,23 @@
+{
+  "name": "personal-site",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro check && astro build",
+    "preview": "astro preview",
+    "check": "astro check",
+    "test": "vitest run",
+    "verify": "npm run test && npm run build"
+  },
+  "dependencies": {
+    "@astrojs/mdx": "latest",
+    "astro": "latest"
+  },
+  "devDependencies": {
+    "@astrojs/check": "latest",
+    "typescript": "latest",
+    "vitest": "latest"
+  }
+}
