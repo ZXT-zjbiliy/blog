@@ -69,7 +69,7 @@ Responsibilities:
 - Use PowerShell in `E:/blog`.
 - On this machine, Git is available at `C:\Program Files\Git\cmd\git.exe`.
 - Use `cmd /c npm.cmd ...` for npm commands to avoid PowerShell policy issues.
-- Rename the branch to `main` before adding the GitHub Pages workflow.
+- The base branch should be named `main` before feature implementation starts. If implementation happens in a feature worktree, do not rename that feature branch during Task 8.
 - Commit after each task.
 
 ---
@@ -1739,7 +1739,6 @@ Expected:
 - Create: `public/favicon.svg`
 - Create: `public/robots.txt`
 - Create: `.github/workflows/deploy.yml`
-- Modify: branch name from `master` to `main`
 - Test: `cmd /c npm.cmd run verify`
 
 - [ ] **Step 1: Add favicon**
@@ -1804,17 +1803,19 @@ jobs:
         uses: actions/deploy-pages@v5
 ```
 
-- [ ] **Step 4: Rename local branch to main**
+- [ ] **Step 4: Confirm branch setup for GitHub Pages**
 
 Run:
 
 ```powershell
-& 'C:\Program Files\Git\cmd\git.exe' branch -M main
+& 'C:\Program Files\Git\cmd\git.exe' branch --show-current
+& 'C:\Program Files\Git\cmd\git.exe' branch --list main
 ```
 
 Expected:
 
-- `git branch --show-current` prints `main`.
+- The current implementation branch remains unchanged.
+- A local `main` branch exists and will be the branch pushed to GitHub Pages after integration.
 
 - [ ] **Step 5: Run full verification**
 
