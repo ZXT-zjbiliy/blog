@@ -40,6 +40,7 @@ export function formatDate(date: Date): string {
   }).format(date);
 }
 
+// Use for site-relative paths only. External URLs should stay untouched.
 export function sitePath(path: string, base = import.meta.env.BASE_URL): string {
   const cleanBase = base.endsWith("/") ? base : `${base}/`;
   const cleanPath = path.replace(/^\/+/, "");

@@ -35,6 +35,7 @@ describe("site data helpers", () => {
 
   it("formats dates without local timezone drift", () => {
     expect(formatDate(new Date("2026-07-03T00:30:00.000Z"))).toBe("Jul 3, 2026");
+    expect(formatDate(new Date("2026-07-03T23:30:00.000Z"))).toBe("Jul 3, 2026");
   });
 
   it("prefixes links with the GitHub Pages base path", () => {
