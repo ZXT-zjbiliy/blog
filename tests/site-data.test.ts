@@ -33,6 +33,10 @@ describe("site data helpers", () => {
     expect(formatDate(new Date("2026-07-03"))).toBe("Jul 3, 2026");
   });
 
+  it("formats dates without local timezone drift", () => {
+    expect(formatDate(new Date("2026-07-03T00:30:00.000Z"))).toBe("Jul 3, 2026");
+  });
+
   it("prefixes links with the GitHub Pages base path", () => {
     expect(sitePath("/notes", "/blog/")).toBe("/blog/notes");
     expect(sitePath("projects", "/")).toBe("/projects");
