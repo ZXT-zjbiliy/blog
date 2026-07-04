@@ -1,5 +1,6 @@
 ---
 import "@styles/global.css";
+import { sitePath } from "@lib/site-data";
 
 const {
   title = "ZXT Notes",
@@ -16,7 +17,7 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{pageTitle}</title>
-    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+    <link rel="icon" href={sitePath("/favicon.svg")} />
   </head>
   <body>
     <slot />

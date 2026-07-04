@@ -46,7 +46,7 @@ const recentUpdates = notes.slice(0, 3);
 
       <section class="section">
         <div class="section-heading">
-          <p class="eyebrow">Featured notes</p>
+          <h2>Featured notes</h2>
           <a href={sitePath("/notes")}>All notes</a>
         </div>
         <div class="grid three">
@@ -65,7 +65,7 @@ const recentUpdates = notes.slice(0, 3);
 
       <section class="section">
         <div class="section-heading">
-          <p class="eyebrow">Projects</p>
+          <h2>Projects</h2>
           <a href={sitePath("/projects")}>All projects</a>
         </div>
         <div class="grid two">
@@ -84,7 +84,7 @@ const recentUpdates = notes.slice(0, 3);
 
       <section class="section">
         <div class="section-heading">
-          <p class="eyebrow">Recent updates</p>
+          <h2>Recent updates</h2>
           <a href={sitePath("/topics")}>Browse topics</a>
         </div>
         <div class="grid">
@@ -148,6 +148,16 @@ const recentUpdates = notes.slice(0, 3);
     justify-content: space-between;
     gap: 16px;
     margin-bottom: 14px;
+  }
+
+  .section-heading h2 {
+    margin: 0;
+    color: var(--accent);
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0;
+    line-height: 1.2;
+    text-transform: uppercase;
   }
 
   @media (max-width: 820px) {
