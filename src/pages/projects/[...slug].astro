@@ -1,0 +1,46 @@
+---
+import { getCollection, render } from "astro:content";
+import PortalLayout from "@layouts/PortalLayout.astro";
+import { formatDate, sitePath } from "@lib/site-data";
+
+export async function getStaticPaths() {
+  const projects = await getCollection("projects", ({ data }) => data.draft !== true);
+  return projects.map((project) => ({ params: { slug: project.id }, props: { project } }));
+}
+
+const { project } = Astro.props;
+const { Content } = await render(project);
+---
+
+<PortalLayout title={project.data.title} description={project.data.description}>
+  <article class="prose">
+    <p class="eyebrow">{project.data.status}</p>
+    <h1>{project.data.title}</h1>
+    <p class="muted">{project.data.description}</p>
+    <p class="muted"><time datetime={project.data.date.toISOString()}>{formatDate(project.data.date)}</time></p>
+    <div class="button-row">
+      {project.data.repo ? <a class="button" href={project.data.repo}>GitHub</a> : null}
+      {project.data.demo ? <a class="button" href={project.data.demo}>Demo</a> : null}
+    </div>
+    <ul class="tag-list">
+      {project.data.stack.map((item) => <li class="tag">{item}</li>)}
+    </ul>
+    <Content />
+    {project.data.relatedNotes.length > 0 ? (
+      <section>
+        <h2>Related notes</h2>
+        <ul>
+          {project.data.relatedNotes.map((note) => <li><a href={sitePath(`/notes/${note.id}`)}>{note.id}</a></li>)}
+        </ul>
+      </section>
+    ) : null}
+  </article>
+</PortalLayout>
+
+<style>
+  h1 {
+    margin: 8px 0;
+    font-size: 2.7rem;
+    line-height: 1.05;
+  }
+</style>

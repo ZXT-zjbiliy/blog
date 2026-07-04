@@ -1,0 +1,82 @@
+---
+import { getCollection, render } from "astro:content";
+import ContentCard from "@components/ContentCard.astro";
+import PortalLayout from "@layouts/PortalLayout.astro";
+import { sortByDateDesc } from "@lib/site-data";
+
+export async function getStaticPaths() {
+  const topics = await getCollection("topics", ({ data }) => data.draft !== true);
+  return topics.map((topic) => ({ params: { slug: topic.id }, props: { topic } }));
+}
+
+const { topic } = Astro.props;
+const { Content } = await render(topic);
+const noteIds = topic.data.notes.map((note) => note.id);
+const projectIds = topic.data.projects.map((project) => project.id);
+const notes = sortByDateDesc(
+  await getCollection("notes", ({ id, data }) => data.draft !== true && noteIds.includes(id))
+);
+const projects = sortByDateDesc(
+  await getCollection("projects", ({ id, data }) => data.draft !== true && projectIds.includes(id))
+);
+---
+
+<PortalLayout title={topic.data.title} description={topic.data.description}>
+  <article class="prose">
+    <p class="eyebrow">Topic</p>
+    <h1>{topic.data.title}</h1>
+    <p class="muted">{topic.data.description}</p>
+    <ul class="tag-list">
+      {topic.data.tags.map((tag) => <li class="tag">{tag}</li>)}
+    </ul>
+    <Content />
+  </article>
+
+  {notes.length > 0 ? (
+    <section class="related">
+      <h2>Notes</h2>
+      <div class="grid">
+        {notes.map((note) => (
+          <ContentCard
+            href={`/notes/${note.id}`}
+            title={note.data.title}
+            description={note.data.description}
+            date={note.data.date}
+            tags={note.data.tags}
+            meta={note.data.category}
+          />
+        ))}
+      </div>
+    </section>
+  ) : null}
+
+  {projects.length > 0 ? (
+    <section class="related">
+      <h2>Projects</h2>
+      <div class="grid">
+        {projects.map((project) => (
+          <ContentCard
+            href={`/projects/${project.id}`}
+            title={project.data.title}
+            description={project.data.description}
+            date={project.data.date}
+            tags={project.data.stack}
+            meta={project.data.status}
+          />
+        ))}
+      </div>
+    </section>
+  ) : null}
+</PortalLayout>
+
+<style>
+  h1 {
+    margin: 8px 0;
+    font-size: 2.7rem;
+    line-height: 1.05;
+  }
+
+  .related {
+    margin-top: 36px;
+  }
+</style>

@@ -1,0 +1,41 @@
+---
+import { getCollection } from "astro:content";
+import ContentCard from "@components/ContentCard.astro";
+import PortalLayout from "@layouts/PortalLayout.astro";
+import { sortByDateDesc, visibleEntries } from "@lib/site-data";
+
+const projects = sortByDateDesc(visibleEntries(await getCollection("projects")));
+---
+
+<PortalLayout title="Projects" description="Selected public projects and writeups.">
+  <section class="page-head">
+    <p class="eyebrow">Project shelf</p>
+    <h1>Projects</h1>
+    <p class="muted">A compact list of projects, experiments, and research threads.</p>
+  </section>
+
+  <section class="grid two">
+    {projects.map((project) => (
+      <ContentCard
+        href={`/projects/${project.id}`}
+        title={project.data.title}
+        description={project.data.description}
+        date={project.data.date}
+        tags={project.data.stack}
+        meta={project.data.status}
+      />
+    ))}
+  </section>
+</PortalLayout>
+
+<style>
+  .page-head {
+    margin-bottom: 26px;
+  }
+
+  h1 {
+    margin: 8px 0;
+    font-size: 2.6rem;
+    line-height: 1.05;
+  }
+</style>

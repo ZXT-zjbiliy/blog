@@ -1,0 +1,41 @@
+---
+import { getCollection } from "astro:content";
+import ContentCard from "@components/ContentCard.astro";
+import PortalLayout from "@layouts/PortalLayout.astro";
+import { sortByDateDesc, visibleEntries } from "@lib/site-data";
+
+const topics = sortByDateDesc(visibleEntries(await getCollection("topics")));
+---
+
+<PortalLayout title="Topics" description="Curated series connecting notes and projects.">
+  <section class="page-head">
+    <p class="eyebrow">Series</p>
+    <h1>Topics</h1>
+    <p class="muted">Durable threads that connect notes, projects, and reading paths.</p>
+  </section>
+
+  <section class="grid two">
+    {topics.map((topic) => (
+      <ContentCard
+        href={`/topics/${topic.id}`}
+        title={topic.data.title}
+        description={topic.data.description}
+        date={topic.data.date}
+        tags={topic.data.tags}
+        meta={`${topic.data.notes.length} notes / ${topic.data.projects.length} projects`}
+      />
+    ))}
+  </section>
+</PortalLayout>
+
+<style>
+  .page-head {
+    margin-bottom: 26px;
+  }
+
+  h1 {
+    margin: 8px 0;
+    font-size: 2.6rem;
+    line-height: 1.05;
+  }
+</style>
