@@ -1,0 +1,39 @@
+---
+import { formatDate, sitePath } from "@lib/site-data";
+
+const { href, title, description, date, tags = [], meta = "" } = Astro.props;
+---
+
+<article class="card content-card">
+  <div class="meta">
+    {date ? <time datetime={date.toISOString()}>{formatDate(date)}</time> : null}
+    {meta ? <span>{meta}</span> : null}
+  </div>
+  <h3><a href={sitePath(href)}>{title}</a></h3>
+  <p>{description}</p>
+  {tags.length > 0 ? (
+    <ul class="tag-list">
+      {tags.map((tag: string) => <li class="tag">{tag}</li>)}
+    </ul>
+  ) : null}
+</article>
+
+<style>
+  .content-card h3 {
+    margin: 8px 0;
+    line-height: 1.25;
+  }
+
+  .content-card p {
+    margin: 0;
+    color: var(--muted);
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    color: var(--muted);
+    font-size: 0.86rem;
+  }
+</style>

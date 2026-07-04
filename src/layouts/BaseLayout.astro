@@ -1,0 +1,24 @@
+---
+import "@styles/global.css";
+
+const {
+  title = "ZXT Notes",
+  description = "Personal notes, projects, and topics."
+} = Astro.props;
+
+const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="description" content={description} />
+    <title>{pageTitle}</title>
+    <link rel="icon" href={`${import.meta.env.BASE_URL}favicon.svg`} />
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

@@ -1,0 +1,29 @@
+---
+const { compact = false } = Astro.props;
+---
+
+<div class:list={["identity-mark", { compact }]}>
+  <span>Z</span>
+</div>
+
+<style>
+  .identity-mark {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 8px;
+    background:
+      linear-gradient(135deg, rgba(23, 107, 135, 0.16), rgba(70, 122, 84, 0.14)),
+      #fff;
+    border: 1px solid var(--line);
+    color: var(--accent-strong);
+    font-weight: 800;
+  }
+
+  .identity-mark.compact {
+    width: 34px;
+    height: 34px;
+  }
+</style>

@@ -1,0 +1,53 @@
+---
+import IdentityMark from "@components/IdentityMark.astro";
+import { sitePath } from "@lib/site-data";
+
+const links = [
+  { href: "/notes", label: "Notes" },
+  { href: "/projects", label: "Projects" },
+  { href: "/about", label: "About" }
+];
+---
+
+<header class="site-header">
+  <a class="brand" href={sitePath("/")}>
+    <IdentityMark compact />
+    <span>ZXT</span>
+  </a>
+  <nav aria-label="Primary navigation">
+    {links.map((link) => <a href={sitePath(link.href)}>{link.label}</a>)}
+  </nav>
+</header>
+
+<style>
+  .site-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    min-height: 72px;
+  }
+
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 800;
+  }
+
+  nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    color: var(--muted);
+    font-weight: 700;
+  }
+
+  @media (max-width: 640px) {
+    .site-header {
+      align-items: flex-start;
+      flex-direction: column;
+      padding: 10px 0;
+    }
+  }
+</style>

@@ -1,0 +1,93 @@
+---
+import BaseLayout from "@layouts/BaseLayout.astro";
+import IdentityMark from "@components/IdentityMark.astro";
+import { sitePath } from "@lib/site-data";
+
+const { title, description } = Astro.props;
+
+const links = [
+  { href: "/", label: "Home" },
+  { href: "/notes", label: "Notes" },
+  { href: "/projects", label: "Projects" },
+  { href: "/topics", label: "Topics" },
+  { href: "/about", label: "About" }
+];
+---
+
+<BaseLayout title={title} description={description}>
+  <div class="portal-shell">
+    <aside class="sidebar">
+      <a class="portal-brand" href={sitePath("/")}>
+        <IdentityMark compact />
+        <span>ZXT Portal</span>
+      </a>
+      <nav aria-label="Portal navigation">
+        {links.map((link) => <a href={sitePath(link.href)}>{link.label}</a>)}
+      </nav>
+    </aside>
+    <main class="portal-main">
+      <slot />
+    </main>
+  </div>
+</BaseLayout>
+
+<style>
+  .portal-shell {
+    display: grid;
+    grid-template-columns: 220px minmax(0, 1fr);
+    min-height: 100vh;
+  }
+
+  .sidebar {
+    border-right: 1px solid var(--line);
+    background: var(--surface);
+    padding: 24px;
+  }
+
+  .portal-brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 28px;
+    font-weight: 800;
+  }
+
+  .sidebar nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  .sidebar nav a {
+    border-radius: var(--radius);
+    color: var(--muted);
+    font-weight: 700;
+    padding: 8px 10px;
+  }
+
+  .sidebar nav a:hover {
+    background: var(--surface-muted);
+    color: var(--accent);
+  }
+
+  .portal-main {
+    width: min(960px, calc(100% - 32px));
+    margin: 0 auto;
+    padding: 36px 0 56px;
+  }
+
+  @media (max-width: 760px) {
+    .portal-shell {
+      grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .sidebar nav {
+      display: flex;
+      flex-wrap: wrap;
+    }
+  }
+</style>
