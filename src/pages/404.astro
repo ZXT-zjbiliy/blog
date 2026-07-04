@@ -1,0 +1,24 @@
+---
+import PortalLayout from "@layouts/PortalLayout.astro";
+import { sitePath } from "@lib/site-data";
+---
+
+<PortalLayout title="Page not found" description="The requested page was not found.">
+  <section class="prose">
+    <p class="eyebrow">404</p>
+    <h1>Page not found</h1>
+    <p class="muted">The page may have moved, or the link may be incomplete.</p>
+    <div class="button-row">
+      <a class="button primary" href={sitePath("/")}>Go home</a>
+      <a class="button" href={sitePath("/notes")}>Browse notes</a>
+    </div>
+  </section>
+</PortalLayout>
+
+<style>
+  h1 {
+    margin: 8px 0;
+    font-size: 2.7rem;
+    line-height: 1.05;
+  }
+</style>
