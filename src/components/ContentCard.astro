@@ -1,6 +1,15 @@
 ---
 import { formatDate, sitePath } from "@lib/site-data";
 
+interface Props {
+  href: string;
+  title: string;
+  description: string;
+  date?: Date;
+  tags?: string[];
+  meta?: string;
+}
+
 const { href, title, description, date, tags = [], meta = "" } = Astro.props;
 ---
 

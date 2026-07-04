@@ -35,6 +35,14 @@ a:hover {
   color: var(--accent);
 }
 
+.prose a {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
 .container {
   width: min(1120px, calc(100% - 32px));
   margin: 0 auto;

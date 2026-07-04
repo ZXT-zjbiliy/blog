@@ -1,8 +1,12 @@
 ---
+interface Props {
+  compact?: boolean;
+}
+
 const { compact = false } = Astro.props;
 ---
 
-<div class:list={["identity-mark", { compact }]}>
+<div class:list={["identity-mark", { compact }]} aria-hidden="true">
   <span>Z</span>
 </div>
 
