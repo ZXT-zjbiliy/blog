@@ -1,0 +1,76 @@
+---
+import { getCollection } from "astro:content";
+import ContentCard from "@components/ContentCard.astro";
+import PortalLayout from "@layouts/PortalLayout.astro";
+import { getAllTags, sortByDateDesc, visibleEntries } from "@lib/site-data";
+
+const notes = sortByDateDesc(visibleEntries(await getCollection("notes")));
+const tags = getAllTags(notes);
+---
+
+<PortalLayout title="Notes" description="Personal notes and engineering writing.">
+  <section class="page-head">
+    <p class="eyebrow">Knowledge base</p>
+    <h1>Notes</h1>
+    <p class="muted">Search and browse notes by category, tag, and date.</p>
+    <input id="note-search" type="search" placeholder="Search notes, tags, or categories" />
+    <ul class="tag-list">
+      {tags.map((tag) => <li class="tag">{tag}</li>)}
+    </ul>
+  </section>
+
+  <section class="grid" id="notes-list">
+    {notes.map((note) => (
+      <div data-search={`${note.data.title} ${note.data.description} ${note.data.category} ${note.data.tags.join(" ")}`.toLowerCase()}>
+        <ContentCard
+          href={`/notes/${note.id}`}
+          title={note.data.title}
+          description={note.data.description}
+          date={note.data.date}
+          tags={note.data.tags}
+          meta={note.data.category}
+        />
+      </div>
+    ))}
+  </section>
+
+  <script>
+    const input = document.querySelector("#note-search");
+    const items = Array.from(document.querySelectorAll("#notes-list [data-search]"));
+
+    if (input instanceof HTMLInputElement) {
+      input.addEventListener("input", () => {
+        const query = input.value.toLowerCase().trim();
+
+        for (const item of items) {
+          if (item instanceof HTMLElement) {
+            const searchText = item.dataset.search ?? "";
+            item.hidden = query.length > 0 && !searchText.includes(query);
+          }
+        }
+      });
+    }
+  </script>
+</PortalLayout>
+
+<style>
+  .page-head {
+    margin-bottom: 26px;
+  }
+
+  h1 {
+    margin: 8px 0;
+    font-size: 2.6rem;
+    line-height: 1.05;
+  }
+
+  input {
+    width: 100%;
+    min-height: 44px;
+    margin-top: 14px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    padding: 0 12px;
+    font: inherit;
+  }
+</style>
