@@ -1,3 +1,5 @@
+@import "katex/dist/katex.min.css";
+
 :root {
   color-scheme: light;
   --bg: #f7f8fb;
@@ -156,6 +158,8 @@ html[data-lang="zh"] .language-toggle .lang-zh {
 
 .prose {
   max-width: 760px;
+  overflow-x: clip;
+  overflow-wrap: break-word;
 }
 
 .prose h1,
@@ -168,6 +172,64 @@ html[data-lang="zh"] .language-toggle .lang-zh {
   border-radius: 5px;
   background: var(--surface-muted);
   padding: 2px 5px;
+}
+
+.prose pre {
+  max-width: 100%;
+  overflow-x: auto;
+  border-radius: var(--radius);
+  background: #101827;
+  color: #eef2f7;
+  padding: 16px;
+}
+
+.prose pre code {
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+.prose img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  margin: 18px 0;
+}
+
+.prose table {
+  display: block;
+  max-width: 100%;
+  width: 100%;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+
+.prose .katex-display {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding-bottom: 4px;
+}
+
+.prose .katex-display > .katex {
+  white-space: nowrap;
+}
+
+.prose .katex .katex-mathml,
+.prose .katex .katex-mathml * {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(1px, 1px, 1px, 1px);
+}
+
+.prose th,
+.prose td {
+  border: 1px solid var(--line);
+  padding: 8px 10px;
 }
 
 @media (max-width: 820px) {

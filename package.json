@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "astro dev",
     "build": "astro check && astro build",
+    "import:obsidian:courses": "node scripts/import-obsidian-courses.mjs",
     "preview": "astro preview",
     "check": "astro check",
     "test": "vitest run",
@@ -13,7 +14,10 @@
   },
   "dependencies": {
     "@astrojs/mdx": "^7.0.2",
-    "astro": "^7.0.6"
+    "astro": "^7.0.6",
+    "katex": "^0.17.0",
+    "rehype-katex": "^7.0.1",
+    "remark-math": "^6.0.0"
   },
   "devDependencies": {
     "@astrojs/check": "^0.9.9",

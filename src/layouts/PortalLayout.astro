@@ -40,6 +40,7 @@ const links = [
     display: grid;
     grid-template-columns: 220px minmax(0, 1fr);
     min-height: 100vh;
+    min-width: 0;
   }
 
   .sidebar {
@@ -79,6 +80,7 @@ const links = [
 
   .portal-main {
     width: min(960px, calc(100% - 32px));
+    min-width: 0;
     margin: 0 auto;
     padding: 36px 0 56px;
   }
@@ -96,6 +98,10 @@ const links = [
     .sidebar nav {
       display: flex;
       flex-wrap: wrap;
+    }
+
+    .portal-main {
+      width: min(960px, calc(100vw - 32px));
     }
   }
 </style>
