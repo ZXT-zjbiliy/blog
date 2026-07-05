@@ -6,11 +6,11 @@ import { sitePath } from "@lib/site-data";
 <PortalLayout title="Page not found" description="The requested page was not found.">
   <section class="prose">
     <p class="eyebrow">404</p>
-    <h1>Page not found</h1>
-    <p class="muted">The page may have moved, or the link may be incomplete.</p>
+    <h1 data-zh="页面未找到">Page not found</h1>
+    <p class="muted" data-zh="页面可能已经移动，或者链接不完整。">The page may have moved, or the link may be incomplete.</p>
     <div class="button-row">
-      <a class="button primary" href={sitePath("/")}>Go home</a>
-      <a class="button" href={sitePath("/notes")}>Browse notes</a>
+      <a class="button primary" href={sitePath("/")} data-zh="回到首页">Go home</a>
+      <a class="button" href={sitePath("/notes")} data-zh="浏览笔记">Browse notes</a>
     </div>
   </section>
 </PortalLayout>

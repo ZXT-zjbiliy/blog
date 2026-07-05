@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import PortalLayout from "@layouts/PortalLayout.astro";
+import { entryZh } from "@lib/i18n";
 import { formatDate } from "@lib/site-data";
 
 export async function getStaticPaths() {
@@ -10,19 +11,20 @@ export async function getStaticPaths() {
 
 const { note } = Astro.props;
 const { Content } = await render(note);
+const zh = entryZh("notes", note.id);
 ---
 
 <PortalLayout title={note.data.title} description={note.data.description}>
   <article class="prose">
-    <p class="eyebrow">{note.data.category}</p>
-    <h1>{note.data.title}</h1>
-    <p class="muted">{note.data.description}</p>
+    <p class="eyebrow" data-zh={zh?.meta}>{note.data.category}</p>
+    <h1 data-zh={zh?.title}>{note.data.title}</h1>
+    <p class="muted" data-zh={zh?.description}>{note.data.description}</p>
     <p class="muted">
       <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
-      {note.data.updated ? <span> Updated {formatDate(note.data.updated)}</span> : null}
+      {note.data.updated ? <span data-zh={` 更新于 ${formatDate(note.data.updated)}`}> Updated {formatDate(note.data.updated)}</span> : null}
     </p>
     <ul class="tag-list">
-      {note.data.tags.map((tag) => <li class="tag">{tag}</li>)}
+      {note.data.tags.map((tag, index) => <li class="tag" data-zh={zh?.tags?.[index]}>{tag}</li>)}
     </ul>
     <Content />
   </article>

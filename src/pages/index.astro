@@ -4,6 +4,7 @@ import SiteHeader from "@components/SiteHeader.astro";
 import ContentCard from "@components/ContentCard.astro";
 import IdentityMark from "@components/IdentityMark.astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
+import { entryZh } from "@lib/i18n";
 import { featuredEntries, sitePath, sortByDateDesc, visibleEntries } from "@lib/site-data";
 
 const allNotes = await getCollection("notes");
@@ -22,82 +23,106 @@ const recentUpdates = notes.slice(0, 3);
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow">Personal portal</p>
-          <h1>Hi, I am ZXT.</h1>
-          <p class="hero-copy">
+          <p class="eyebrow" data-zh="个人门户">Personal portal</p>
+          <h1 data-zh="你好，我是 ZXT。">Hi, I am ZXT.</h1>
+          <p
+            class="hero-copy"
+            data-zh="我用这个网站收集工程笔记、AI 基础设施阅读、智能体系统想法、项目记录，以及值得反复查阅的实践细节。"
+          >
             I use this site to collect engineering notes, AI infrastructure reading, agent system ideas,
             project writeups, and the practical details worth revisiting.
           </p>
           <div class="button-row">
-            <a class="button primary" href={sitePath("/notes")}>Read notes</a>
-            <a class="button" href={sitePath("/projects")}>View projects</a>
+            <a class="button primary" href={sitePath("/notes")} data-zh="阅读笔记">Read notes</a>
+            <a class="button" href={sitePath("/projects")} data-zh="查看项目">View projects</a>
           </div>
         </div>
         <div class="intro-panel">
           <IdentityMark />
-          <p class="eyebrow">Current focus</p>
+          <p class="eyebrow" data-zh="当前关注">Current focus</p>
           <ul>
-            <li>Agent systems and tool use</li>
-            <li>MCP and AI infrastructure</li>
-            <li>Engineering practice and deployment notes</li>
+            <li data-zh="智能体系统与工具调用">Agent systems and tool use</li>
+            <li data-zh="MCP 与 AI 基础设施">MCP and AI infrastructure</li>
+            <li data-zh="工程实践与部署笔记">Engineering practice and deployment notes</li>
           </ul>
         </div>
       </section>
 
       <section class="section">
         <div class="section-heading">
-          <h2>Featured notes</h2>
-          <a href={sitePath("/notes")}>All notes</a>
+          <h2 data-zh="精选笔记">Featured notes</h2>
+          <a href={sitePath("/notes")} data-zh="全部笔记">All notes</a>
         </div>
         <div class="grid three">
-          {featuredNotes.map((note) => (
-            <ContentCard
-              href={`/notes/${note.id}`}
-              title={note.data.title}
-              description={note.data.description}
-              date={note.data.date}
-              tags={note.data.tags}
-              meta={note.data.category}
-            />
-          ))}
+          {featuredNotes.map((note) => {
+            const zh = entryZh("notes", note.id);
+            return (
+              <ContentCard
+                href={`/notes/${note.id}`}
+                title={note.data.title}
+                titleZh={zh?.title}
+                description={note.data.description}
+                descriptionZh={zh?.description}
+                date={note.data.date}
+                tags={note.data.tags}
+                tagsZh={zh?.tags}
+                meta={note.data.category}
+                metaZh={zh?.meta}
+              />
+            );
+          })}
         </div>
       </section>
 
       <section class="section">
         <div class="section-heading">
-          <h2>Projects</h2>
-          <a href={sitePath("/projects")}>All projects</a>
+          <h2 data-zh="项目">Projects</h2>
+          <a href={sitePath("/projects")} data-zh="全部项目">All projects</a>
         </div>
         <div class="grid two">
-          {featuredProjects.map((project) => (
-            <ContentCard
-              href={`/projects/${project.id}`}
-              title={project.data.title}
-              description={project.data.description}
-              date={project.data.date}
-              tags={project.data.stack}
-              meta={project.data.status}
-            />
-          ))}
+          {featuredProjects.map((project) => {
+            const zh = entryZh("projects", project.id);
+            return (
+              <ContentCard
+                href={`/projects/${project.id}`}
+                title={project.data.title}
+                titleZh={zh?.title}
+                description={project.data.description}
+                descriptionZh={zh?.description}
+                date={project.data.date}
+                tags={project.data.stack}
+                tagsZh={zh?.tags}
+                meta={project.data.status}
+                metaZh={zh?.meta}
+              />
+            );
+          })}
         </div>
       </section>
 
       <section class="section">
         <div class="section-heading">
-          <h2>Recent updates</h2>
-          <a href={sitePath("/topics")}>Browse topics</a>
+          <h2 data-zh="最近更新">Recent updates</h2>
+          <a href={sitePath("/topics")} data-zh="浏览主题">Browse topics</a>
         </div>
         <div class="grid">
-          {recentUpdates.map((note) => (
-            <ContentCard
-              href={`/notes/${note.id}`}
-              title={note.data.title}
-              description={note.data.description}
-              date={note.data.date}
-              tags={note.data.tags}
-              meta={note.data.category}
-            />
-          ))}
+          {recentUpdates.map((note) => {
+            const zh = entryZh("notes", note.id);
+            return (
+              <ContentCard
+                href={`/notes/${note.id}`}
+                title={note.data.title}
+                titleZh={zh?.title}
+                description={note.data.description}
+                descriptionZh={zh?.description}
+                date={note.data.date}
+                tags={note.data.tags}
+                tagsZh={zh?.tags}
+                meta={note.data.category}
+                metaZh={zh?.meta}
+              />
+            );
+          })}
         </div>
       </section>
     </main>

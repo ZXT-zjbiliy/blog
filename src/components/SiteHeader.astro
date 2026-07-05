@@ -1,11 +1,12 @@
 ---
 import IdentityMark from "@components/IdentityMark.astro";
+import LanguageToggle from "@components/LanguageToggle.astro";
 import { sitePath } from "@lib/site-data";
 
 const links = [
-  { href: "/notes", label: "Notes" },
-  { href: "/projects", label: "Projects" },
-  { href: "/about", label: "About" }
+  { href: "/notes", label: "Notes", labelZh: "笔记" },
+  { href: "/projects", label: "Projects", labelZh: "项目" },
+  { href: "/about", label: "About", labelZh: "关于" }
 ];
 ---
 
@@ -14,9 +15,12 @@ const links = [
     <IdentityMark compact />
     <span>ZXT</span>
   </a>
-  <nav aria-label="Primary navigation">
-    {links.map((link) => <a href={sitePath(link.href)}>{link.label}</a>)}
-  </nav>
+  <div class="header-actions">
+    <nav aria-label="Primary navigation">
+      {links.map((link) => <a href={sitePath(link.href)} data-zh={link.labelZh}>{link.label}</a>)}
+    </nav>
+    <LanguageToggle />
+  </div>
 </header>
 
 <style>
@@ -43,11 +47,23 @@ const links = [
     font-weight: 700;
   }
 
+  .header-actions {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+  }
+
   @media (max-width: 640px) {
     .site-header {
       align-items: flex-start;
       flex-direction: column;
       padding: 10px 0;
+    }
+
+    .header-actions {
+      align-items: flex-start;
+      flex-direction: column;
+      gap: 12px;
     }
   }
 </style>

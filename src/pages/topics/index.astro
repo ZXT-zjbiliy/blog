@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import ContentCard from "@components/ContentCard.astro";
 import PortalLayout from "@layouts/PortalLayout.astro";
+import { countMetaZh, entryZh } from "@lib/i18n";
 import { sortByDateDesc, visibleEntries } from "@lib/site-data";
 
 const topics = sortByDateDesc(visibleEntries(await getCollection("topics")));
@@ -9,22 +10,31 @@ const topics = sortByDateDesc(visibleEntries(await getCollection("topics")));
 
 <PortalLayout title="Topics" description="Curated series connecting notes and projects.">
   <section class="page-head">
-    <p class="eyebrow">Series</p>
-    <h1>Topics</h1>
-    <p class="muted">Durable threads that connect notes, projects, and reading paths.</p>
+    <p class="eyebrow" data-zh="系列">Series</p>
+    <h1 data-zh="主题">Topics</h1>
+    <p class="muted" data-zh="连接笔记、项目和阅读路径的长期线索。">
+      Durable threads that connect notes, projects, and reading paths.
+    </p>
   </section>
 
   <section class="grid two">
-    {topics.map((topic) => (
-      <ContentCard
-        href={`/topics/${topic.id}`}
-        title={topic.data.title}
-        description={topic.data.description}
-        date={topic.data.date}
-        tags={topic.data.tags}
-        meta={`${topic.data.notes.length} notes / ${topic.data.projects.length} projects`}
-      />
-    ))}
+    {topics.map((topic) => {
+      const zh = entryZh("topics", topic.id);
+      return (
+        <ContentCard
+          href={`/topics/${topic.id}`}
+          title={topic.data.title}
+          titleZh={zh?.title}
+          description={topic.data.description}
+          descriptionZh={zh?.description}
+          date={topic.data.date}
+          tags={topic.data.tags}
+          tagsZh={zh?.tags}
+          meta={`${topic.data.notes.length} notes / ${topic.data.projects.length} projects`}
+          metaZh={countMetaZh(topic.data.notes.length, topic.data.projects.length)}
+        />
+      );
+    })}
   </section>
 </PortalLayout>
 

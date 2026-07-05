@@ -1,6 +1,7 @@
 ---
 import { getCollection, render } from "astro:content";
 import PortalLayout from "@layouts/PortalLayout.astro";
+import { entryZh, statusZh } from "@lib/i18n";
 import { formatDate, sitePath } from "@lib/site-data";
 
 export async function getStaticPaths() {
@@ -10,27 +11,31 @@ export async function getStaticPaths() {
 
 const { project } = Astro.props;
 const { Content } = await render(project);
+const zh = entryZh("projects", project.id);
 ---
 
 <PortalLayout title={project.data.title} description={project.data.description}>
   <article class="prose">
-    <p class="eyebrow">{project.data.status}</p>
-    <h1>{project.data.title}</h1>
-    <p class="muted">{project.data.description}</p>
+    <p class="eyebrow" data-zh={zh?.meta ?? statusZh(project.data.status)}>{project.data.status}</p>
+    <h1 data-zh={zh?.title}>{project.data.title}</h1>
+    <p class="muted" data-zh={zh?.description}>{project.data.description}</p>
     <p class="muted"><time datetime={project.data.date.toISOString()}>{formatDate(project.data.date)}</time></p>
     <div class="button-row">
       {project.data.repo ? <a class="button" href={project.data.repo}>GitHub</a> : null}
       {project.data.demo ? <a class="button" href={project.data.demo}>Demo</a> : null}
     </div>
     <ul class="tag-list">
-      {project.data.stack.map((item) => <li class="tag">{item}</li>)}
+      {project.data.stack.map((item, index) => <li class="tag" data-zh={zh?.tags?.[index]}>{item}</li>)}
     </ul>
     <Content />
     {project.data.relatedNotes.length > 0 ? (
       <section>
-        <h2>Related notes</h2>
+        <h2 data-zh="相关笔记">Related notes</h2>
         <ul>
-          {project.data.relatedNotes.map((note) => <li><a href={sitePath(`/notes/${note.id}`)}>{note.id}</a></li>)}
+          {project.data.relatedNotes.map((note) => {
+            const noteZh = entryZh("notes", note.id);
+            return <li><a href={sitePath(`/notes/${note.id}`)} data-zh={noteZh?.title}>{note.id}</a></li>;
+          })}
         </ul>
       </section>
     ) : null}

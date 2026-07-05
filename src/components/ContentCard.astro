@@ -8,21 +8,36 @@ interface Props {
   date?: Date;
   tags?: string[];
   meta?: string;
+  titleZh?: string;
+  descriptionZh?: string;
+  tagsZh?: string[];
+  metaZh?: string;
 }
 
-const { href, title, description, date, tags = [], meta = "" } = Astro.props;
+const {
+  href,
+  title,
+  description,
+  date,
+  tags = [],
+  meta = "",
+  titleZh,
+  descriptionZh,
+  tagsZh = [],
+  metaZh
+} = Astro.props;
 ---
 
 <article class="card content-card">
   <div class="meta">
     {date ? <time datetime={date.toISOString()}>{formatDate(date)}</time> : null}
-    {meta ? <span>{meta}</span> : null}
+    {meta ? <span data-zh={metaZh}>{meta}</span> : null}
   </div>
-  <h3><a href={sitePath(href)}>{title}</a></h3>
-  <p>{description}</p>
+  <h3><a href={sitePath(href)} data-zh={titleZh}>{title}</a></h3>
+  <p data-zh={descriptionZh}>{description}</p>
   {tags.length > 0 ? (
     <ul class="tag-list">
-      {tags.map((tag: string) => <li class="tag">{tag}</li>)}
+      {tags.map((tag: string, index: number) => <li class="tag" data-zh={tagsZh[index]}>{tag}</li>)}
     </ul>
   ) : null}
 </article>

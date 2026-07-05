@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import ContentCard from "@components/ContentCard.astro";
 import PortalLayout from "@layouts/PortalLayout.astro";
+import { entryZh, tagZh } from "@lib/i18n";
 import { getAllTags, sortByDateDesc, visibleEntries } from "@lib/site-data";
 
 const notes = sortByDateDesc(visibleEntries(await getCollection("notes")));
@@ -10,28 +11,53 @@ const tags = getAllTags(notes);
 
 <PortalLayout title="Notes" description="Personal notes and engineering writing.">
   <section class="page-head">
-    <p class="eyebrow">Knowledge base</p>
-    <h1>Notes</h1>
-    <p class="muted">Search and browse notes by category, tag, and date.</p>
-    <input id="note-search" type="search" placeholder="Search notes, tags, or categories" />
+    <p class="eyebrow" data-zh="知识库">Knowledge base</p>
+    <h1 data-zh="笔记">Notes</h1>
+    <p class="muted" data-zh="按分类、标签和日期搜索或浏览笔记。">
+      Search and browse notes by category, tag, and date.
+    </p>
+    <input
+      id="note-search"
+      type="search"
+      placeholder="Search notes, tags, or categories"
+      data-placeholder-zh="搜索笔记、标签或分类"
+    />
     <ul class="tag-list">
-      {tags.map((tag) => <li class="tag">{tag}</li>)}
+      {tags.map((tag) => <li class="tag" data-zh={tagZh(tag)}>{tag}</li>)}
     </ul>
   </section>
 
   <section class="grid" id="notes-list">
-    {notes.map((note) => (
-      <div data-search={`${note.data.title} ${note.data.description} ${note.data.category} ${note.data.tags.join(" ")}`.toLowerCase()}>
-        <ContentCard
-          href={`/notes/${note.id}`}
-          title={note.data.title}
-          description={note.data.description}
-          date={note.data.date}
-          tags={note.data.tags}
-          meta={note.data.category}
-        />
-      </div>
-    ))}
+    {notes.map((note) => {
+      const zh = entryZh("notes", note.id);
+      const searchText = [
+        note.data.title,
+        note.data.description,
+        note.data.category,
+        note.data.tags.join(" "),
+        zh?.title,
+        zh?.description,
+        zh?.meta,
+        zh?.tags?.join(" ")
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return (
+        <div data-search={searchText}>
+          <ContentCard
+            href={`/notes/${note.id}`}
+            title={note.data.title}
+            titleZh={zh?.title}
+            description={note.data.description}
+            descriptionZh={zh?.description}
+            date={note.data.date}
+            tags={note.data.tags}
+            tagsZh={zh?.tags}
+            meta={note.data.category}
+            metaZh={zh?.meta}
+          />
+        </div>
+      );
+    })}
   </section>
 
   <script>

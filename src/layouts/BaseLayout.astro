@@ -11,15 +11,70 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="en" data-lang="en">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="description" content={description} />
     <title>{pageTitle}</title>
     <link rel="icon" href={sitePath("/favicon.svg")} />
+    <script is:inline>
+      (() => {
+        const savedLanguage = localStorage.getItem("zxt-language");
+        const language = savedLanguage === "zh" ? "zh" : "en";
+        document.documentElement.dataset.lang = language;
+        document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
+      })();
+    </script>
   </head>
   <body>
     <slot />
+    <script is:inline>
+      (() => {
+        const key = "zxt-language";
+        const root = document.documentElement;
+
+        function currentLanguage() {
+          return localStorage.getItem(key) === "zh" ? "zh" : "en";
+        }
+
+        function applyLanguage(language) {
+          root.dataset.lang = language;
+          root.lang = language === "zh" ? "zh-CN" : "en";
+          localStorage.setItem(key, language);
+
+          for (const element of document.querySelectorAll("[data-zh]")) {
+            if (!element.dataset.en) {
+              element.dataset.en = element.textContent ?? "";
+            }
+
+            element.textContent = language === "zh" ? element.dataset.zh ?? "" : element.dataset.en;
+          }
+
+          for (const element of document.querySelectorAll("[data-placeholder-zh]")) {
+            if (element instanceof HTMLInputElement) {
+              element.dataset.placeholderEn ||= element.placeholder;
+              element.placeholder =
+                language === "zh" ? element.dataset.placeholderZh ?? element.placeholder : element.dataset.placeholderEn;
+            }
+          }
+
+          for (const toggle of document.querySelectorAll("[data-language-toggle]")) {
+            if (toggle instanceof HTMLButtonElement) {
+              toggle.setAttribute("aria-pressed", String(language === "zh"));
+              toggle.setAttribute("aria-label", language === "zh" ? "Switch to English" : "切换到中文");
+            }
+          }
+        }
+
+        applyLanguage(currentLanguage());
+
+        for (const toggle of document.querySelectorAll("[data-language-toggle]")) {
+          toggle.addEventListener("click", () => {
+            applyLanguage(currentLanguage() === "zh" ? "en" : "zh");
+          });
+        }
+      })();
+    </script>
   </body>
 </html>

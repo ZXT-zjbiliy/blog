@@ -1,16 +1,17 @@
 ---
 import BaseLayout from "@layouts/BaseLayout.astro";
 import IdentityMark from "@components/IdentityMark.astro";
+import LanguageToggle from "@components/LanguageToggle.astro";
 import { sitePath } from "@lib/site-data";
 
 const { title, description } = Astro.props;
 
 const links = [
-  { href: "/", label: "Home" },
-  { href: "/notes", label: "Notes" },
-  { href: "/projects", label: "Projects" },
-  { href: "/topics", label: "Topics" },
-  { href: "/about", label: "About" }
+  { href: "/", label: "Home", labelZh: "首页" },
+  { href: "/notes", label: "Notes", labelZh: "笔记" },
+  { href: "/projects", label: "Projects", labelZh: "项目" },
+  { href: "/topics", label: "Topics", labelZh: "主题" },
+  { href: "/about", label: "About", labelZh: "关于" }
 ];
 ---
 
@@ -22,8 +23,11 @@ const links = [
         <span>ZXT Portal</span>
       </a>
       <nav aria-label="Portal navigation">
-        {links.map((link) => <a href={sitePath(link.href)}>{link.label}</a>)}
+        {links.map((link) => <a href={sitePath(link.href)} data-zh={link.labelZh}>{link.label}</a>)}
       </nav>
+      <div class="sidebar-tools">
+        <LanguageToggle />
+      </div>
     </aside>
     <main class="portal-main">
       <slot />
@@ -67,6 +71,10 @@ const links = [
   .sidebar nav a:hover {
     background: var(--surface-muted);
     color: var(--accent);
+  }
+
+  .sidebar-tools {
+    margin-top: 18px;
   }
 
   .portal-main {

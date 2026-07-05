@@ -2,6 +2,7 @@
 import { getCollection } from "astro:content";
 import ContentCard from "@components/ContentCard.astro";
 import PortalLayout from "@layouts/PortalLayout.astro";
+import { entryZh, statusZh } from "@lib/i18n";
 import { sortByDateDesc, visibleEntries } from "@lib/site-data";
 
 const projects = sortByDateDesc(visibleEntries(await getCollection("projects")));
@@ -9,22 +10,31 @@ const projects = sortByDateDesc(visibleEntries(await getCollection("projects")))
 
 <PortalLayout title="Projects" description="Selected public projects and writeups.">
   <section class="page-head">
-    <p class="eyebrow">Project shelf</p>
-    <h1>Projects</h1>
-    <p class="muted">A compact list of projects, experiments, and research threads.</p>
+    <p class="eyebrow" data-zh="项目架">Project shelf</p>
+    <h1 data-zh="项目">Projects</h1>
+    <p class="muted" data-zh="项目、实验和研究线索的简洁列表。">
+      A compact list of projects, experiments, and research threads.
+    </p>
   </section>
 
   <section class="grid two">
-    {projects.map((project) => (
-      <ContentCard
-        href={`/projects/${project.id}`}
-        title={project.data.title}
-        description={project.data.description}
-        date={project.data.date}
-        tags={project.data.stack}
-        meta={project.data.status}
-      />
-    ))}
+    {projects.map((project) => {
+      const zh = entryZh("projects", project.id);
+      return (
+        <ContentCard
+          href={`/projects/${project.id}`}
+          title={project.data.title}
+          titleZh={zh?.title}
+          description={project.data.description}
+          descriptionZh={zh?.description}
+          date={project.data.date}
+          tags={project.data.stack}
+          tagsZh={zh?.tags}
+          meta={project.data.status}
+          metaZh={zh?.meta ?? statusZh(project.data.status)}
+        />
+      );
+    })}
   </section>
 </PortalLayout>
 

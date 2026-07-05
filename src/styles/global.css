@@ -84,6 +84,37 @@ a:hover {
   color: white;
 }
 
+.language-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-width: 76px;
+  height: 36px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--muted);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 800;
+  padding: 3px;
+}
+
+.language-toggle span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 28px;
+  border-radius: 6px;
+}
+
+html[data-lang="en"] .language-toggle .lang-en,
+html[data-lang="zh"] .language-toggle .lang-zh {
+  background: var(--accent);
+  color: white;
+}
+
 .grid {
   display: grid;
   gap: 16px;
