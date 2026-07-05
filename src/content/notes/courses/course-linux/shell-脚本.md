@@ -1,6 +1,6 @@
 ---
 title: "Shell 脚本"
-description: "Linux 课程笔记，导入自 Obsidian。"
+description: "Shell 脚本语法、流程控制和常用自动化写法整理。"
 date: 2025-12-31
 updated: 2025-12-31
 category: "Linux"

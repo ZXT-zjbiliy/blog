@@ -1,6 +1,6 @@
 ---
 title: "图像信息处理 DIP"
-description: "图像信息处理 DIP 课程笔记，导入自 Obsidian。"
+description: "数字图像处理中的成像、增强、变换和分析方法整理。"
 date: 2026-07-02
 updated: 2026-07-02
 category: "图像信息处理 DIP"

@@ -1,6 +1,6 @@
 ---
 title: "算法（ADS）"
-description: "数据结构与算法 课程笔记，导入自 Obsidian。"
+description: "高级数据结构与算法设计课程中的核心概念和例题整理。"
 date: 2026-03-05
 updated: 2026-03-05
 category: "数据结构与算法"

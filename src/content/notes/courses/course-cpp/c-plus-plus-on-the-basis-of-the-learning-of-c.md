@@ -1,6 +1,6 @@
 ---
 title: "C++ (on the basis of the learning of C)"
-description: "C++ 课程笔记，导入自 Obsidian。"
+description: "C++ 基础语法、类型系统、面向对象与常用语言特性的整理。"
 date: 2026-03-05
 updated: 2026-03-05
 category: "C++"

@@ -1,6 +1,6 @@
 ---
 title: "C++ STL"
-description: "C++ 课程笔记，导入自 Obsidian。"
+description: "C++ 标准模板库容器、迭代器与常用用法整理。"
 date: 2026-03-05
 updated: 2026-03-05
 category: "C++"

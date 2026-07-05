@@ -1,6 +1,6 @@
 ---
 title: "数值分析"
-description: "数值分析 课程笔记集合，导入自 Obsidian。"
+description: "数值分析课程中误差、迭代法、矩阵计算和插值积分相关笔记。"
 date: 2026-06-26
 tags: ["课程笔记", "数值分析", "数学"]
 notes: ["courses/course-numerical-analysis/数值分析"]
@@ -9,4 +9,4 @@ featured: false
 draft: false
 ---
 
-这个主题聚合导入自 Obsidian 的 数值分析 课程笔记。
+这里整理数值分析中的误差、迭代法、矩阵计算、插值和积分相关笔记。

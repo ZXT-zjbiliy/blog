@@ -1,6 +1,6 @@
 ---
 title: "Linux 常用命令"
-description: "Linux 课程笔记，导入自 Obsidian。"
+description: "Linux 日常操作、文件管理和系统命令速查笔记。"
 date: 2026-05-13
 updated: 2026-05-13
 category: "Linux"

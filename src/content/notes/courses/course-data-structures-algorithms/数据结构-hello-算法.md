@@ -1,6 +1,6 @@
 ---
 title: "数据结构（Hello 算法）"
-description: "数据结构与算法 课程笔记，导入自 Obsidian。"
+description: "基于 Hello 算法的数据结构与基础算法学习笔记。"
 date: 2026-04-20
 updated: 2026-04-20
 category: "数据结构与算法"

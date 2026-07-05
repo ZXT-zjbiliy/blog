@@ -1,6 +1,6 @@
 ---
 title: "CS106L&OOP"
-description: "C++ 课程笔记，导入自 Obsidian。"
+description: "CS106L 课程中 C++ 现代特性与面向对象编程要点整理。"
 date: 2026-03-05
 updated: 2026-03-05
 category: "C++"

@@ -78,6 +78,44 @@ const assetExtensions = new Set([
 
 const generatedTopicIds = courseGroups.map((group) => group.topicId);
 
+const noteDescriptions = new Map([
+  ["C++ (on the basis of the learning of C)", "C++ 基础语法、类型系统、面向对象与常用语言特性的整理。"],
+  ["C++ STL", "C++ 标准模板库容器、迭代器与常用用法整理。"],
+  ["CS106L&OOP", "CS106L 课程中 C++ 现代特性与面向对象编程要点整理。"],
+  ["排序算法与摊还分析", "排序算法、复杂度分析与摊还分析相关知识整理。"],
+  ["数据结构（Hello 算法）", "基于 Hello 算法的数据结构与基础算法学习笔记。"],
+  ["算法（ADS）", "高级数据结构与算法设计课程中的核心概念和例题整理。"],
+  ["零零碎碎的算法", "算法学习过程中零散技巧、题型和易混点的整理。"],
+  ["数据库系统", "数据库模型、SQL、事务、索引和查询优化等知识整理。"],
+  ["图像信息处理 DIP", "数字图像处理中的成像、增强、变换和分析方法整理。"],
+  ["信息安全原理", "密码学、网络安全、访问控制和系统安全基础整理。"],
+  ["Linux 常用命令", "Linux 日常操作、文件管理和系统命令速查笔记。"],
+  ["Shell 脚本", "Shell 脚本语法、流程控制和常用自动化写法整理。"],
+  ["tmux常用指令", "tmux 会话、窗口和面板管理常用命令备忘。"],
+  ["服务器常用指令", "服务器环境配置、网络代理和常用运维命令整理。"],
+  ["数值分析", "数值分析中的误差、方程求解、矩阵计算和插值积分整理。"]
+]);
+
+const topicDescriptions = new Map([
+  ["数据结构与算法", "数据结构、算法设计、复杂度分析和典型题型的学习整理。"],
+  ["C++", "C++ 语言基础、STL、现代特性和面向对象编程的学习整理。"],
+  ["Linux", "Linux 命令行、Shell 脚本、tmux 和服务器操作备忘。"],
+  ["数据库系统", "数据库系统课程中模型、SQL、事务、索引与优化相关笔记。"],
+  ["数值分析", "数值分析课程中误差、迭代法、矩阵计算和插值积分相关笔记。"],
+  ["图像信息处理 DIP", "数字图像处理课程中图像表示、增强、变换和分析方法笔记。"],
+  ["信息安全原理", "信息安全课程中密码学、网络安全、访问控制和系统安全笔记。"]
+]);
+
+const topicIntros = new Map([
+  ["数据结构与算法", "这里整理数据结构、算法设计、复杂度分析和典型题型相关的学习笔记。"],
+  ["C++", "这里整理 C++ 基础语法、STL、现代语言特性和面向对象编程相关笔记。"],
+  ["Linux", "这里整理 Linux 命令行、Shell 脚本、tmux 和服务器操作相关备忘。"],
+  ["数据库系统", "这里整理数据库模型、SQL、事务、索引、查询处理与优化相关笔记。"],
+  ["数值分析", "这里整理数值分析中的误差、迭代法、矩阵计算、插值和积分相关笔记。"],
+  ["图像信息处理 DIP", "这里整理数字图像处理中的图像表示、增强、变换和分析方法。"],
+  ["信息安全原理", "这里整理密码学、网络安全、访问控制和系统安全基础相关笔记。"]
+]);
+
 function slugify(value) {
   const slug = value
     .normalize("NFKC")
@@ -224,6 +262,18 @@ function cleanWikiLabel(value) {
   return value.replaceAll("\n", " ").trim();
 }
 
+function noteDescription(title, category) {
+  return noteDescriptions.get(title) ?? `${category} 中关于 ${title} 的学习笔记。`;
+}
+
+function topicDescription(title) {
+  return topicDescriptions.get(title) ?? `${title} 相关学习笔记整理。`;
+}
+
+function topicIntro(title) {
+  return topicIntros.get(title) ?? `这里整理 ${title} 相关的学习笔记。`;
+}
+
 function collectObsidianEmbeds(markdown, assetIndex, usedAssets, missingAssets) {
   for (const match of markdown.matchAll(/!\[\[([^\]|#]+)(?:#[^\]|]+)?(?:\|[^\]]+)?\]\]/g)) {
     const assetName = path.basename(match[1].trim());
@@ -319,7 +369,7 @@ function convertMarkdown(markdown, currentFile, context) {
 }
 
 function noteFrontmatter({ title, category, tags, date }) {
-  const description = `${category} 课程笔记，导入自 Obsidian。`;
+  const description = noteDescription(title, category);
 
   return [
     "---",
@@ -336,7 +386,7 @@ function noteFrontmatter({ title, category, tags, date }) {
 }
 
 function topicFrontmatter({ title, tags, date, notes }) {
-  const description = `${title} 课程笔记集合，导入自 Obsidian。`;
+  const description = topicDescription(title);
 
   return [
     "---",
@@ -452,7 +502,7 @@ async function main() {
         tags: group.tags,
         date: latestDate,
         notes: notes.map((note) => note.noteId)
-      })}\n\n这个主题聚合导入自 Obsidian 的 ${group.title} 课程笔记。\n`,
+      })}\n\n${topicIntro(group.title)}\n`,
       "utf8"
     );
   }

@@ -1,6 +1,6 @@
 ---
 title: "tmux常用指令"
-description: "Linux 课程笔记，导入自 Obsidian。"
+description: "tmux 会话、窗口和面板管理常用命令备忘。"
 date: 2026-05-09
 updated: 2026-05-09
 category: "Linux"
