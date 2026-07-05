@@ -51,7 +51,7 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
 ---
 
 <PortalLayout title={pageTitle} description={note.data.description}>
-  <div class:list={["note-layout", sections.length === 0 && "without-toc"]}>
+  <div class:list={["note-layout", sections.length === 0 && "without-toc"]} data-note-view-root data-note-id={note.id}>
     {sections.length > 0 ? (
       <aside class="note-toc" aria-label="Note table of contents">
         <p class="eyebrow" data-zh="目录">Contents</p>
@@ -76,6 +76,7 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
       <p class="muted">
         <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
         {note.data.updated ? <span data-zh={` 更新于 ${formatDate(note.data.updated)}`}> Updated {formatDate(note.data.updated)}</span> : null}
+        <span data-note-view-count data-zh="0 次点击">0 views</span>
       </p>
       <ul class="tag-list">
         {note.data.tags.map((tag, index) => <li class="tag" data-zh={zh?.tags?.[index]}>{tag}</li>)}

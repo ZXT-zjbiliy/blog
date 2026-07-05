@@ -7,23 +7,33 @@ import { sitePath } from "@lib/site-data";
 const { title, description } = Astro.props;
 
 const links = [
-  { href: "/", label: "Home", labelZh: "首页" },
-  { href: "/notes", label: "Notes", labelZh: "笔记" },
-  { href: "/projects", label: "Projects", labelZh: "项目" },
-  { href: "/topics", label: "Topics", labelZh: "主题" },
-  { href: "/about", label: "About", labelZh: "关于" }
+  { href: "/", label: "Home", labelZh: "首页", short: "H" },
+  { href: "/notes", label: "Notes", labelZh: "笔记", short: "N" },
+  { href: "/projects", label: "Projects", labelZh: "项目", short: "P" },
+  { href: "/topics", label: "Topics", labelZh: "主题", short: "T" },
+  { href: "/about", label: "About", labelZh: "关于", short: "A" }
 ];
 ---
 
 <BaseLayout title={title} description={description}>
-  <div class="portal-shell">
+  <div class="portal-shell" data-portal-shell data-collapsed-class="portal-shell collapsed">
     <aside class="sidebar">
-      <a class="portal-brand" href={sitePath("/")}>
-        <IdentityMark compact />
-        <span>ZXT Portal</span>
-      </a>
+      <div class="sidebar-head">
+        <a class="portal-brand" href={sitePath("/")}>
+          <IdentityMark compact />
+          <span>ZXT Portal</span>
+        </a>
+        <button class="sidebar-toggle" type="button" data-sidebar-toggle aria-label="Collapse sidebar" title="Collapse sidebar">
+          <span aria-hidden="true">‹</span>
+        </button>
+      </div>
       <nav aria-label="Portal navigation">
-        {links.map((link) => <a href={sitePath(link.href)} data-zh={link.labelZh}>{link.label}</a>)}
+        {links.map((link) => (
+          <a href={sitePath(link.href)} title={link.label}>
+            <span class="nav-short" aria-hidden="true">{link.short}</span>
+            <span class="nav-label" data-zh={link.labelZh}>{link.label}</span>
+          </a>
+        ))}
       </nav>
       <div class="sidebar-tools">
         <LanguageToggle />
@@ -41,20 +51,63 @@ const links = [
     grid-template-columns: 220px minmax(0, 1fr);
     min-height: 100vh;
     min-width: 0;
+    transition: grid-template-columns 180ms ease;
+  }
+
+  .portal-shell.collapsed {
+    grid-template-columns: 76px minmax(0, 1fr);
   }
 
   .sidebar {
     border-right: 1px solid var(--line);
     background: var(--surface);
     padding: 24px;
+    transition:
+      padding 180ms ease,
+      background 180ms ease;
+  }
+
+  .sidebar-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 28px;
   }
 
   .portal-brand {
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 28px;
+    min-width: 0;
     font-weight: 800;
+  }
+
+  .portal-brand span {
+    white-space: nowrap;
+  }
+
+  .sidebar-toggle {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 34px;
+    height: 34px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-muted);
+    color: var(--accent-strong);
+    cursor: pointer;
+    font: inherit;
+    font-size: 1.25rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .sidebar-toggle:hover {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
   }
 
   .sidebar nav {
@@ -63,10 +116,25 @@ const links = [
   }
 
   .sidebar nav a {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     border-radius: var(--radius);
     color: var(--muted);
     font-weight: 700;
     padding: 8px 10px;
+  }
+
+  .nav-short {
+    display: none;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    border-radius: var(--radius);
+    background: var(--surface-muted);
+    color: var(--accent-strong);
+    font-size: 0.8rem;
+    font-weight: 900;
   }
 
   .sidebar nav a:hover {
@@ -76,6 +144,38 @@ const links = [
 
   .sidebar-tools {
     margin-top: 18px;
+  }
+
+  .portal-shell.collapsed .sidebar {
+    padding: 20px 14px;
+  }
+
+  .portal-shell.collapsed .portal-brand span,
+  .portal-shell.collapsed .nav-label,
+  .portal-shell.collapsed .sidebar-tools {
+    display: none;
+  }
+
+  .portal-shell.collapsed .sidebar-head {
+    justify-content: center;
+    margin-bottom: 22px;
+  }
+
+  .portal-shell.collapsed .portal-brand {
+    display: none;
+  }
+
+  .portal-shell.collapsed .sidebar-toggle span {
+    transform: rotate(180deg);
+  }
+
+  .portal-shell.collapsed .sidebar nav a {
+    justify-content: center;
+    padding: 7px;
+  }
+
+  .portal-shell.collapsed .nav-short {
+    display: grid;
   }
 
   .portal-main {
@@ -90,6 +190,10 @@ const links = [
       grid-template-columns: 1fr;
     }
 
+    .portal-shell.collapsed {
+      grid-template-columns: 1fr;
+    }
+
     .sidebar {
       border-right: 0;
       border-bottom: 1px solid var(--line);
@@ -100,8 +204,49 @@ const links = [
       flex-wrap: wrap;
     }
 
+    .sidebar-toggle {
+      display: none;
+    }
+
+    .portal-shell.collapsed .portal-brand,
+    .portal-shell.collapsed .portal-brand span,
+    .portal-shell.collapsed .nav-label,
+    .portal-shell.collapsed .sidebar-tools {
+      display: inherit;
+    }
+
+    .portal-shell.collapsed .nav-short {
+      display: none;
+    }
+
     .portal-main {
       width: min(960px, calc(100vw - 32px));
     }
   }
 </style>
+
+<script>
+  (() => {
+    const key = "zxt-sidebar-collapsed";
+    const shell = document.querySelector("[data-portal-shell]");
+    const toggle = document.querySelector("[data-sidebar-toggle]");
+
+    if (!(shell instanceof HTMLElement) || !(toggle instanceof HTMLButtonElement)) {
+      return;
+    }
+
+    function applySidebarState(collapsed: boolean, shellElement: HTMLElement, toggleButton: HTMLButtonElement) {
+      shellElement.classList.toggle("collapsed", collapsed);
+      toggleButton.setAttribute("aria-expanded", String(!collapsed));
+      toggleButton.setAttribute("aria-label", collapsed ? "Expand sidebar" : "Collapse sidebar");
+      toggleButton.setAttribute("title", collapsed ? "Expand sidebar" : "Collapse sidebar");
+      localStorage.setItem(key, collapsed ? "1" : "0");
+    }
+
+    applySidebarState(localStorage.getItem(key) === "1", shell, toggle);
+
+    toggle.addEventListener("click", () => {
+      applySidebarState(!shell.classList.contains("collapsed"), shell, toggle);
+    });
+  })();
+</script>

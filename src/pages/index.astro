@@ -12,7 +12,7 @@ const allNotes = await getCollection("notes");
 const allProjects = await getCollection("projects");
 
 const notes = sortByDateDesc(visibleEntries(allNotes));
-const featuredNotes = featuredEntries(allNotes, 3);
+const featuredNotes = notes;
 const featuredProjects = featuredEntries(allProjects, 3);
 const recentUpdates = notes.slice(0, 3);
 ---
@@ -54,12 +54,13 @@ const recentUpdates = notes.slice(0, 3);
           <h2 data-zh="精选笔记">Featured notes</h2>
           <a href={sitePath("/notes")} data-zh="全部笔记">All notes</a>
         </div>
-        <div class="grid three">
+        <div class="grid three" data-sort-notes-by-views>
           {featuredNotes.map((note) => {
             const zh = entryZh("notes", note.id);
             return (
               <ContentCard
                 href={noteEntryPath(note.id, note.body)}
+                noteId={note.id}
                 title={note.data.title}
                 titleZh={zh?.title}
                 description={note.data.description}
@@ -112,6 +113,7 @@ const recentUpdates = notes.slice(0, 3);
             return (
               <ContentCard
                 href={noteEntryPath(note.id, note.body)}
+                noteId={note.id}
                 title={note.data.title}
                 titleZh={zh?.title}
                 description={note.data.description}
@@ -184,6 +186,10 @@ const recentUpdates = notes.slice(0, 3);
     letter-spacing: 0;
     line-height: 1.2;
     text-transform: uppercase;
+  }
+
+  :global([data-sort-notes-by-views] > [data-note-card]:nth-child(n + 4)) {
+    display: none;
   }
 
   @media (max-width: 820px) {

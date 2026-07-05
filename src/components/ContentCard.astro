@@ -12,6 +12,7 @@ interface Props {
   descriptionZh?: string;
   tagsZh?: string[];
   metaZh?: string;
+  noteId?: string;
 }
 
 const {
@@ -24,14 +25,16 @@ const {
   titleZh,
   descriptionZh,
   tagsZh = [],
-  metaZh
+  metaZh,
+  noteId
 } = Astro.props;
 ---
 
-<article class="card content-card">
+<article class="card content-card" data-note-card={noteId} data-note-id={noteId}>
   <div class="meta">
     {date ? <time datetime={date.toISOString()}>{formatDate(date)}</time> : null}
     {meta ? <span data-zh={metaZh}>{meta}</span> : null}
+    {noteId ? <span class="view-count" data-note-view-count data-zh="0 次点击">0 views</span> : null}
   </div>
   <h3><a href={sitePath(href)} data-zh={titleZh}>{title}</a></h3>
   <p data-zh={descriptionZh}>{description}</p>

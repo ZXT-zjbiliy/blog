@@ -46,6 +46,7 @@ const tags = getAllTags(notes);
         <div data-search={searchText}>
           <ContentCard
             href={noteEntryPath(note.id, note.body)}
+            noteId={note.id}
             title={note.data.title}
             titleZh={zh?.title}
             description={note.data.description}

@@ -44,6 +44,7 @@ const projects = sortByDateDesc(
           return (
             <ContentCard
               href={noteEntryPath(note.id, note.body)}
+              noteId={note.id}
               title={note.data.title}
               titleZh={noteZh?.title}
               description={note.data.description}

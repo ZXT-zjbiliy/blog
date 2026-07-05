@@ -67,11 +67,93 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
           }
         }
 
+        const noteViewsKey = "zxt-note-views";
+
+        function readNoteViews() {
+          try {
+            return JSON.parse(localStorage.getItem(noteViewsKey) ?? "{}");
+          } catch {
+            return {};
+          }
+        }
+
+        function writeNoteViews(views) {
+          localStorage.setItem(noteViewsKey, JSON.stringify(views));
+        }
+
+        function noteViewLabel(count, language) {
+          return language === "zh" ? `${count} 次点击` : `${count} views`;
+        }
+
+        function noteIdForElement(element) {
+          const owner = element.closest("[data-note-id]");
+          return owner instanceof HTMLElement ? owner.dataset.noteId : undefined;
+        }
+
+        function updateNoteViewDisplays(views) {
+          const language = currentLanguage();
+
+          for (const counter of document.querySelectorAll("[data-note-view-count]")) {
+            if (!(counter instanceof HTMLElement)) {
+              continue;
+            }
+
+            const noteId = noteIdForElement(counter);
+            const count = noteId ? Number(views[noteId] ?? 0) : 0;
+            counter.dataset.en = noteViewLabel(count, "en");
+            counter.dataset.zh = noteViewLabel(count, "zh");
+            counter.textContent = noteViewLabel(count, language);
+          }
+        }
+
+        function sortNoteCardsByViews(views) {
+          for (const container of document.querySelectorAll("[data-sort-notes-by-views]")) {
+            const cards = Array.from(container.children).filter(
+              (child) => child instanceof HTMLElement && child.matches("[data-note-card]")
+            );
+
+            cards.forEach((card, index) => {
+              card.dataset.originalIndex ||= String(index);
+            });
+
+            cards
+              .sort((left, right) => {
+                const leftViews = Number(views[left.dataset.noteId ?? ""] ?? 0);
+                const rightViews = Number(views[right.dataset.noteId ?? ""] ?? 0);
+
+                if (leftViews !== rightViews) {
+                  return rightViews - leftViews;
+                }
+
+                return Number(left.dataset.originalIndex ?? 0) - Number(right.dataset.originalIndex ?? 0);
+              })
+              .forEach((card) => container.append(card));
+          }
+        }
+
+        function trackCurrentNoteView(views) {
+          const currentNote = document.querySelector("[data-note-view-root][data-note-id]");
+
+          if (!(currentNote instanceof HTMLElement) || !currentNote.dataset.noteId) {
+            return views;
+          }
+
+          const noteId = currentNote.dataset.noteId;
+          views[noteId] = Number(views[noteId] ?? 0) + 1;
+          writeNoteViews(views);
+          return views;
+        }
+
         applyLanguage(currentLanguage());
+
+        const views = trackCurrentNoteView(readNoteViews());
+        updateNoteViewDisplays(views);
+        sortNoteCardsByViews(views);
 
         for (const toggle of document.querySelectorAll("[data-language-toggle]")) {
           toggle.addEventListener("click", () => {
             applyLanguage(currentLanguage() === "zh" ? "en" : "zh");
+            updateNoteViewDisplays(readNoteViews());
           });
         }
       })();
