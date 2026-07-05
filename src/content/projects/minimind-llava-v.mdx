@@ -1,0 +1,24 @@
+---
+title: "MiniMind LLaVA-V"
+description: "A lightweight multimodal training scaffold connecting MiniMind, a vision tower, and a LLaVA-style projector."
+date: 2026-04-13
+stack: ["Python", "PyTorch", "Transformers", "Multimodal", "LLaVA"]
+status: "experiment"
+featured: true
+repo: "https://github.com/ZXT-zjbiliy/minimind-llava-v"
+topics: ["engineering-practice"]
+relatedNotes: []
+draft: false
+---
+
+## What It Does
+
+MiniMind LLaVA-V is a lightweight multimodal experiment repository. The README positions it as a minimal closed loop from vision tower to projector to MiniMind decoder to multimodal dataset to training.
+
+## Current Capabilities
+
+The project includes MiniMind language-model integration, Hugging Face vision-tower loading, a LLaVA-style projector, multimodal dataset processing, pretraining, full-parameter SFT, checkpoint resume, optional `torch.compile`, and `torchrun` multi-GPU training support.
+
+## Why It Is On This Site
+
+This project records a useful middle ground between reading large multimodal systems and building one from scratch. It keeps the training path visible, concentrates multimodal changes in model, dataset, and trainer layers, and leaves a clear base for later inference, evaluation, and deployment work.

@@ -1,0 +1,24 @@
+---
+title: "ATTI"
+description: "A local-first Edge extension for supported personality-assessment pages, with planning, preview, and explicit fill actions."
+date: 2026-06-07
+stack: ["TypeScript", "Browser Extension", "Local-first", "Adapters", "Automation"]
+status: "active"
+featured: true
+repo: "https://github.com/ZXT-zjbiliy/ATTI"
+topics: ["engineering-practice"]
+relatedNotes: []
+draft: false
+---
+
+## What It Does
+
+ATTI is an Edge extension for supported personality-assessment websites. According to the README, it keeps profile and session data local by default, calls a provider only when the user explicitly starts planning, and can preview plus fill supported questionnaire pages without auto-submitting them.
+
+## Current Scope
+
+The current repository README lists Truity Enneagram as the highest-confidence live path, with adapter-scoped support for Truity DISC, Truity TypeFinder, 16Personalities, SBTI, and a limited generic fallback preview path for unsupported assessment pages.
+
+## Why It Is On This Site
+
+ATTI is a larger engineering project than a single script: it combines browser-extension UI, local state, provider boundaries, site adapters, extraction, preview, fill flows, and recovery behavior. It is a good anchor project for tracking practical automation and adapter design.

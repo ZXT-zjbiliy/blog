@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import ContentCard from "@components/ContentCard.astro";
 import PortalLayout from "@layouts/PortalLayout.astro";
 import { entryZh, tagZh } from "@lib/i18n";
+import { noteEntryPath } from "@lib/note-sections";
 import { getAllTags, sortByDateDesc, visibleEntries } from "@lib/site-data";
 
 const notes = sortByDateDesc(visibleEntries(await getCollection("notes")));
@@ -44,7 +45,7 @@ const tags = getAllTags(notes);
       return (
         <div data-search={searchText}>
           <ContentCard
-            href={`/notes/${note.id}`}
+            href={noteEntryPath(note.id, note.body)}
             title={note.data.title}
             titleZh={zh?.title}
             description={note.data.description}

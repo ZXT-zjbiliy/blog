@@ -3,6 +3,7 @@ import { getCollection, render } from "astro:content";
 import ContentCard from "@components/ContentCard.astro";
 import PortalLayout from "@layouts/PortalLayout.astro";
 import { entryZh } from "@lib/i18n";
+import { noteEntryPath } from "@lib/note-sections";
 import { sortByDateDesc } from "@lib/site-data";
 
 export async function getStaticPaths() {
@@ -42,7 +43,7 @@ const projects = sortByDateDesc(
           const noteZh = entryZh("notes", note.id);
           return (
             <ContentCard
-              href={`/notes/${note.id}`}
+              href={noteEntryPath(note.id, note.body)}
               title={note.data.title}
               titleZh={noteZh?.title}
               description={note.data.description}

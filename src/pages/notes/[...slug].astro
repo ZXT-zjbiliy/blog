@@ -1,39 +1,186 @@
 ---
 import { getCollection, render } from "astro:content";
+import type { CollectionEntry } from "astro:content";
+import { createMarkdownProcessor } from "@astrojs/markdown-remark";
+import rehypeKatex from "rehype-katex";
+import remarkMath from "remark-math";
 import PortalLayout from "@layouts/PortalLayout.astro";
 import { entryZh } from "@lib/i18n";
-import { formatDate } from "@lib/site-data";
+import { getNoteSection, getNoteSections } from "@lib/note-sections";
+import { formatDate, sitePath } from "@lib/site-data";
+
+const markdownProcessor = await createMarkdownProcessor({
+  remarkPlugins: [remarkMath],
+  rehypePlugins: [[rehypeKatex, { strict: false, throwOnError: false }]]
+});
 
 export async function getStaticPaths() {
   const notes = await getCollection("notes", ({ data }) => data.draft !== true);
-  return notes.map((note) => ({ params: { slug: note.id }, props: { note } }));
+  return notes.flatMap((note) => {
+    const sections = getNoteSections(note.body ?? "");
+    const notePath = { params: { slug: note.id }, props: { note } };
+    const sectionPaths = sections.map((section) => ({
+      params: { slug: `${note.id}/${section.slug}` },
+      props: { note, sectionSlug: section.slug }
+    }));
+
+    return [notePath, ...sectionPaths];
+  });
 }
 
-const { note } = Astro.props;
-const { Content } = await render(note);
+type Props = {
+  note: CollectionEntry<"notes">;
+  sectionSlug?: string;
+};
+
+const { note, sectionSlug } = Astro.props as Props;
+const noteBody = note.body ?? "";
+const sections = getNoteSections(noteBody);
+const currentSection = sectionSlug ? getNoteSection(noteBody, sectionSlug) : undefined;
+const renderedSection = currentSection
+  ? await markdownProcessor.render(currentSection.content, { frontmatter: note.data })
+  : undefined;
+let Content;
+
+if (sections.length === 0) {
+  ({ Content } = await render(note));
+}
+
 const zh = entryZh("notes", note.id);
+const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}` : note.data.title;
 ---
 
-<PortalLayout title={note.data.title} description={note.data.description}>
-  <article class="prose">
-    <p class="eyebrow" data-zh={zh?.meta}>{note.data.category}</p>
-    <h1 data-zh={zh?.title}>{note.data.title}</h1>
-    <p class="muted" data-zh={zh?.description}>{note.data.description}</p>
-    <p class="muted">
-      <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
-      {note.data.updated ? <span data-zh={` 更新于 ${formatDate(note.data.updated)}`}> Updated {formatDate(note.data.updated)}</span> : null}
-    </p>
-    <ul class="tag-list">
-      {note.data.tags.map((tag, index) => <li class="tag" data-zh={zh?.tags?.[index]}>{tag}</li>)}
-    </ul>
-    <Content />
-  </article>
+<PortalLayout title={pageTitle} description={note.data.description}>
+  <div class:list={["note-layout", sections.length === 0 && "without-toc"]}>
+    {sections.length > 0 ? (
+      <aside class="note-toc" aria-label="Note table of contents">
+        <p class="eyebrow" data-zh="目录">Contents</p>
+        <nav>
+          {sections.map((section) => (
+            <a
+              class:list={[section.slug === sectionSlug && "active"]}
+              href={sitePath(`/notes/${note.id}/${section.slug}`)}
+            >
+              <span>{section.index + 1}</span>
+              {section.title}
+            </a>
+          ))}
+        </nav>
+      </aside>
+    ) : null}
+
+    <article class="prose note-article">
+      <p class="eyebrow" data-zh={zh?.meta}>{note.data.category}</p>
+      <h1 data-zh={zh?.title}>{note.data.title}</h1>
+      <p class="muted" data-zh={zh?.description}>{note.data.description}</p>
+      <p class="muted">
+        <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
+        {note.data.updated ? <span data-zh={` 更新于 ${formatDate(note.data.updated)}`}> Updated {formatDate(note.data.updated)}</span> : null}
+      </p>
+      <ul class="tag-list">
+        {note.data.tags.map((tag, index) => <li class="tag" data-zh={zh?.tags?.[index]}>{tag}</li>)}
+      </ul>
+
+      {currentSection ? (
+        <div class="note-content" set:html={renderedSection?.code} />
+      ) : sections.length > 0 ? (
+        <section class="section-index">
+          <h2 data-zh="章节目录">Section index</h2>
+          <p class="muted" data-zh="从左侧目录选择一个章节阅读">
+            Pick a section from the table of contents to read it as a separate page.
+          </p>
+        </section>
+      ) : Content ? (
+        <Content />
+      ) : null}
+    </article>
+  </div>
 </PortalLayout>
 
 <style>
+  .note-layout {
+    display: grid;
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    gap: 28px;
+    align-items: start;
+  }
+
+  .note-layout.without-toc {
+    grid-template-columns: 1fr;
+  }
+
+  .note-toc {
+    position: sticky;
+    top: 24px;
+    max-height: calc(100vh - 48px);
+    min-width: 0;
+    overflow: auto;
+    border-right: 1px solid var(--line);
+    padding-right: 14px;
+  }
+
+  .note-toc nav {
+    display: grid;
+    gap: 4px;
+  }
+
+  .note-toc a {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 8px;
+    align-items: start;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.35;
+    padding: 7px 8px;
+  }
+
+  .note-toc a:hover,
+  .note-toc a.active {
+    border-left-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .note-toc span {
+    color: var(--muted);
+    font-size: 0.76rem;
+    font-weight: 800;
+  }
+
+  .note-article {
+    max-width: 760px;
+  }
+
   h1 {
     margin: 8px 0;
     font-size: 2.7rem;
     line-height: 1.05;
+  }
+
+  .section-index {
+    margin-top: 28px;
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+  }
+
+  .note-content :global(h1) {
+    margin-top: 34px;
+    font-size: 2rem;
+  }
+
+  @media (max-width: 880px) {
+    .note-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .note-toc {
+      position: static;
+      max-height: none;
+      border-right: 0;
+      border-bottom: 1px solid var(--line);
+      padding-right: 0;
+      padding-bottom: 14px;
+    }
   }
 </style>
