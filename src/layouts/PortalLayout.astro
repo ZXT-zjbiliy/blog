@@ -59,6 +59,11 @@ const links = [
   }
 
   .sidebar {
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100vh;
+    overflow-y: auto;
     border-right: 1px solid var(--line);
     background: var(--surface);
     padding: 24px;
@@ -195,6 +200,9 @@ const links = [
     }
 
     .sidebar {
+      position: static;
+      height: auto;
+      overflow: visible;
       border-right: 0;
       border-bottom: 1px solid var(--line);
     }

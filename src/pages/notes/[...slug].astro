@@ -41,20 +41,48 @@ const renderedSection = currentSection
   ? await markdownProcessor.render(currentSection.content, { frontmatter: note.data })
   : undefined;
 let Content;
+let wholeHeadings: { depth: number; slug: string; text: string }[] = [];
 
 if (sections.length === 0) {
-  ({ Content } = await render(note));
+  const rendered = await render(note);
+  Content = rendered.Content;
+  wholeHeadings = (rendered.headings ?? []) as { depth: number; slug: string; text: string }[];
 }
+
+// Sub-headings (## and deeper) for the right-side mini table of contents.
+const rawSubHeadings = currentSection
+  ? ((renderedSection?.metadata.headings ?? []) as { depth: number; slug: string; text: string }[])
+  : wholeHeadings;
+const subHeadings = rawSubHeadings.filter((heading) => heading.depth >= 2 && heading.depth <= 4);
 
 const zh = entryZh("notes", note.id);
 const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}` : note.data.title;
 ---
 
 <PortalLayout title={pageTitle} description={note.data.description}>
-  <div class:list={["note-layout", sections.length === 0 && "without-toc"]} data-note-view-root data-note-id={note.id}>
+  <div
+    class:list={[
+      "note-layout",
+      sections.length === 0 && "no-left",
+      subHeadings.length === 0 && "no-right"
+    ]}
+    data-note-view-root
+    data-note-id={note.id}
+  >
     {sections.length > 0 ? (
-      <aside class="note-toc" aria-label="Note table of contents">
-        <p class="eyebrow" data-zh="目录">Contents</p>
+      <aside class="note-toc note-side" data-note-side="left" aria-label="Note table of contents">
+        <div class="note-side-head">
+          <p class="eyebrow" data-zh="目录">Contents</p>
+          <button
+            class="side-toggle"
+            type="button"
+            data-side-toggle="left"
+            aria-label="Collapse contents"
+            title="Collapse contents"
+          >
+            <span aria-hidden="true">‹</span>
+          </button>
+        </div>
         <nav>
           {sections.map((section) => (
             <a
@@ -95,32 +123,109 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
         <Content />
       ) : null}
     </article>
+
+    {subHeadings.length > 0 ? (
+      <aside class="note-subtoc note-side" data-note-side="right" aria-label="Section outline">
+        <div class="note-side-head">
+          <p class="eyebrow" data-zh="小节">On this page</p>
+          <button
+            class="side-toggle"
+            type="button"
+            data-side-toggle="right"
+            aria-label="Collapse outline"
+            title="Collapse outline"
+          >
+            <span aria-hidden="true">›</span>
+          </button>
+        </div>
+        <nav>
+          {subHeadings.map((heading) => (
+            <a class:list={[`depth-${heading.depth}`]} href={`#${heading.slug}`}>
+              {heading.text}
+            </a>
+          ))}
+        </nav>
+      </aside>
+    ) : null}
   </div>
 </PortalLayout>
 
 <style>
   .note-layout {
     display: grid;
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(180px, 220px);
     gap: 28px;
     align-items: start;
   }
 
-  .note-layout.without-toc {
+  /* Missing side rails collapse their track. */
+  .note-layout.no-left {
+    grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+  }
+
+  .note-layout.no-right {
+    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+  }
+
+  .note-layout.no-left.no-right {
     grid-template-columns: 1fr;
   }
 
-  .note-toc {
+  .note-side {
     position: sticky;
     top: 24px;
     max-height: calc(100vh - 48px);
     min-width: 0;
     overflow: auto;
+  }
+
+  .note-toc {
     border-right: 1px solid var(--line);
     padding-right: 14px;
   }
 
-  .note-toc nav {
+  .note-subtoc {
+    border-left: 1px solid var(--line);
+    padding-left: 14px;
+  }
+
+  .note-side-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 8px;
+  }
+
+  .note-side-head .eyebrow {
+    margin: 0;
+  }
+
+  .side-toggle {
+    display: inline-grid;
+    flex: 0 0 auto;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface-muted);
+    color: var(--accent-strong);
+    cursor: pointer;
+    font: inherit;
+    font-size: 1rem;
+    font-weight: 900;
+    line-height: 1;
+  }
+
+  .side-toggle:hover {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+  }
+
+  .note-toc nav,
+  .note-subtoc nav {
     display: grid;
     gap: 4px;
   }
@@ -149,6 +254,59 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
     font-weight: 800;
   }
 
+  .note-subtoc a {
+    display: block;
+    border-left: 2px solid transparent;
+    color: var(--muted);
+    font-size: 0.86rem;
+    line-height: 1.35;
+    padding: 5px 8px;
+  }
+
+  .note-subtoc a:hover,
+  .note-subtoc a.active {
+    border-left-color: var(--accent);
+    color: var(--accent-strong);
+  }
+
+  .note-subtoc a.depth-3 {
+    padding-left: 20px;
+    font-size: 0.82rem;
+  }
+
+  .note-subtoc a.depth-4 {
+    padding-left: 32px;
+    font-size: 0.8rem;
+  }
+
+  /* Collapsed side rail: shrink to a slim strip that only shows the toggle. */
+  .note-side.collapsed {
+    overflow: visible;
+  }
+
+  .note-side.collapsed nav,
+  .note-side.collapsed .eyebrow {
+    display: none;
+  }
+
+  .note-side.collapsed .note-side-head {
+    margin-bottom: 0;
+    justify-content: center;
+  }
+
+  .note-toc.collapsed {
+    padding-right: 6px;
+  }
+
+  .note-subtoc.collapsed {
+    padding-left: 6px;
+  }
+
+  .note-side.collapsed .side-toggle span {
+    transform: rotate(180deg);
+    display: inline-block;
+  }
+
   .note-article {
     max-width: 760px;
   }
@@ -170,18 +328,141 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
     font-size: 2rem;
   }
 
+  /* Offset anchor jumps so headings are not hidden under sticky UI. */
+  .note-content :global(:is(h1, h2, h3, h4)) {
+    scroll-margin-top: 24px;
+  }
+
   @media (max-width: 880px) {
-    .note-layout {
+    .note-layout,
+    .note-layout.no-left,
+    .note-layout.no-right {
       grid-template-columns: 1fr;
     }
 
-    .note-toc {
+    .note-side {
       position: static;
       max-height: none;
+      overflow: visible;
+    }
+
+    .note-toc {
       border-right: 0;
       border-bottom: 1px solid var(--line);
       padding-right: 0;
       padding-bottom: 14px;
     }
+
+    .note-subtoc {
+      order: 3;
+      border-left: 0;
+      border-top: 1px solid var(--line);
+      padding-left: 0;
+      padding-top: 14px;
+    }
+
+    .side-toggle {
+      display: none;
+    }
   }
 </style>
+
+<script>
+  (() => {
+    const root = document.querySelector("[data-note-view-root]");
+    if (!(root instanceof HTMLElement)) {
+      return;
+    }
+
+    // Persist collapse state per side, independent of the portal sidebar.
+    const collapseKey = "zxt-note-side-collapsed";
+    let state: Record<string, boolean> = {};
+    try {
+      state = JSON.parse(localStorage.getItem(collapseKey) ?? "{}") ?? {};
+    } catch {
+      state = {};
+    }
+
+    const toggles = root.querySelectorAll<HTMLButtonElement>("[data-side-toggle]");
+    toggles.forEach((toggle) => {
+      const side = toggle.getAttribute("data-side-toggle");
+      if (!side) {
+        return;
+      }
+
+      const panel = root.querySelector<HTMLElement>(`[data-note-side="${side}"]`);
+      if (!panel) {
+        return;
+      }
+
+      const apply = (collapsed: boolean) => {
+        panel.classList.toggle("collapsed", collapsed);
+        toggle.setAttribute("aria-expanded", String(!collapsed));
+        const label = collapsed ? "Expand" : "Collapse";
+        toggle.setAttribute("aria-label", label);
+        toggle.setAttribute("title", label);
+      };
+
+      apply(state[side] === true);
+
+      toggle.addEventListener("click", () => {
+        const collapsed = !panel.classList.contains("collapsed");
+        apply(collapsed);
+        state[side] = collapsed;
+        try {
+          localStorage.setItem(collapseKey, JSON.stringify(state));
+        } catch {
+          /* ignore storage errors */
+        }
+      });
+    });
+
+    // Scrollspy: highlight the sub-heading currently near the top of the viewport.
+    const subLinks = Array.from(
+      root.querySelectorAll<HTMLAnchorElement>('[data-note-side="right"] nav a')
+    );
+    if (subLinks.length > 0 && "IntersectionObserver" in window) {
+      const linkById = new Map<string, HTMLAnchorElement>();
+      const targets: HTMLElement[] = [];
+
+      subLinks.forEach((link) => {
+        const id = decodeURIComponent(link.getAttribute("href")?.slice(1) ?? "");
+        const target = id ? document.getElementById(id) : null;
+        if (target) {
+          linkById.set(id, link);
+          targets.push(target);
+        }
+      });
+
+      const visible = new Set<string>();
+      const observer = new IntersectionObserver(
+        (entries) => {
+          for (const entry of entries) {
+            const id = entry.target.id;
+            if (entry.isIntersecting) {
+              visible.add(id);
+            } else {
+              visible.delete(id);
+            }
+          }
+
+          let activeId: string | undefined;
+          for (const target of targets) {
+            if (visible.has(target.id)) {
+              activeId = target.id;
+              break;
+            }
+          }
+
+          subLinks.forEach((link) => link.classList.remove("active"));
+          if (activeId) {
+            linkById.get(activeId)?.classList.add("active");
+          }
+        },
+        { rootMargin: "0px 0px -70% 0px", threshold: 0 }
+      );
+
+      targets.forEach((target) => observer.observe(target));
+    }
+  })();
+</script>
