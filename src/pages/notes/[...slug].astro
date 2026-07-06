@@ -152,19 +152,31 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
 
 <style>
   .note-layout {
+    --lw: minmax(180px, 220px);
+    --rw: minmax(180px, 220px);
     display: grid;
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr) minmax(180px, 220px);
+    grid-template-columns: var(--lw) minmax(0, 1fr) var(--rw);
     gap: 28px;
     align-items: start;
+    transition: grid-template-columns 180ms ease;
+  }
+
+  /* Collapsed side rails shrink to a slim strip so the note gets wider. */
+  .note-layout.left-collapsed {
+    --lw: 44px;
+  }
+
+  .note-layout.right-collapsed {
+    --rw: 44px;
   }
 
   /* Missing side rails collapse their track. */
   .note-layout.no-left {
-    grid-template-columns: minmax(0, 1fr) minmax(180px, 220px);
+    grid-template-columns: minmax(0, 1fr) var(--rw);
   }
 
   .note-layout.no-right {
-    grid-template-columns: minmax(180px, 220px) minmax(0, 1fr);
+    grid-template-columns: var(--lw) minmax(0, 1fr);
   }
 
   .note-layout.no-left.no-right {
@@ -308,7 +320,7 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
   }
 
   .note-article {
-    max-width: 760px;
+    max-width: 960px;
   }
 
   h1 {
@@ -397,6 +409,7 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
 
       const apply = (collapsed: boolean) => {
         panel.classList.toggle("collapsed", collapsed);
+        root.classList.toggle(`${side}-collapsed`, collapsed);
         toggle.setAttribute("aria-expanded", String(!collapsed));
         const label = collapsed ? "Expand" : "Collapse";
         toggle.setAttribute("aria-label", label);
