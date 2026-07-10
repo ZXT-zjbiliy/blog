@@ -47,7 +47,205 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
     </script>
   </head>
   <body>
+    <div id="fx-aurora" aria-hidden="true"></div>
+    <canvas id="fx-canvas" aria-hidden="true"></canvas>
     <slot />
+    <script is:inline>
+      /* Flashy-mode particle + spark engine. Exposed as window.__fx.{start,stop};
+       * BaseLayout's applyRgb() drives it. Zero dependencies. Particle colour
+       * reads the live --hue so it flows with the RGB hue cycle. */
+      (() => {
+        const canvas = document.getElementById("fx-canvas");
+        if (!(canvas instanceof HTMLCanvasElement)) return;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return;
+
+        const root = document.documentElement;
+        const reduceMq = window.matchMedia("(prefers-reduced-motion: reduce)");
+        const mobileMq = window.matchMedia("(max-width: 768px)");
+
+        let dpr = 1;
+        let W = 0;
+        let H = 0;
+        let particles = [];
+        let sparks = [];
+        let rafId = 0;
+        let running = false;
+        let lastTrail = 0;
+
+        function targetCount() {
+          const cap = mobileMq.matches ? 40 : 120;
+          return Math.min(cap, Math.floor((window.innerWidth * window.innerHeight) / 12000));
+        }
+
+        function resize() {
+          dpr = Math.min(window.devicePixelRatio || 1, 2);
+          W = canvas.width = Math.floor(window.innerWidth * dpr);
+          H = canvas.height = Math.floor(window.innerHeight * dpr);
+        }
+
+        function seedParticles() {
+          const n = targetCount();
+          particles = [];
+          for (let i = 0; i < n; i++) {
+            particles.push({
+              x: Math.random() * W,
+              y: Math.random() * H,
+              vx: (Math.random() - 0.5) * 0.35 * dpr,
+              vy: (Math.random() - 0.5) * 0.35 * dpr
+            });
+          }
+        }
+
+        function hue() {
+          const raw = getComputedStyle(root).getPropertyValue("--hue").trim();
+          const n = parseFloat(raw);
+          return Number.isFinite(n) ? n : 280;
+        }
+
+        function frame() {
+          if (!running) return;
+          const h = hue();
+          const dot = "hsl(" + h + " 90% 65%)";
+          const linkMax = 120 * dpr;
+          ctx.clearRect(0, 0, W, H);
+
+          for (const p of particles) {
+            p.x += p.vx;
+            p.y += p.vy;
+            if (p.x < 0 || p.x > W) p.vx *= -1;
+            if (p.y < 0 || p.y > H) p.vy *= -1;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, 2 * dpr, 0, Math.PI * 2);
+            ctx.fillStyle = dot;
+            ctx.fill();
+          }
+
+          for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+              const dx = particles[i].x - particles[j].x;
+              const dy = particles[i].y - particles[j].y;
+              const d2 = dx * dx + dy * dy;
+              if (d2 < linkMax * linkMax) {
+                ctx.globalAlpha = 1 - Math.sqrt(d2) / linkMax;
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = dot;
+                ctx.lineWidth = dpr;
+                ctx.stroke();
+                ctx.globalAlpha = 1;
+              }
+            }
+          }
+
+          for (let i = sparks.length - 1; i >= 0; i--) {
+            const s = sparks[i];
+            s.x += s.vx;
+            s.y += s.vy;
+            s.vy += 0.05 * dpr;
+            s.life -= 0.016;
+            if (s.life <= 0) {
+              sparks.splice(i, 1);
+              continue;
+            }
+            ctx.globalAlpha = Math.max(0, s.life);
+            ctx.beginPath();
+            ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+            ctx.fillStyle = "hsl(" + s.hue + " 95% 62%)";
+            ctx.fill();
+            ctx.globalAlpha = 1;
+          }
+
+          rafId = requestAnimationFrame(frame);
+        }
+
+        function addSpark(x, y, spread, count) {
+          const base = hue();
+          for (let i = 0; i < count; i++) {
+            const a = Math.random() * Math.PI * 2;
+            const sp = Math.random() * spread * dpr;
+            sparks.push({
+              x: x * dpr,
+              y: y * dpr,
+              vx: Math.cos(a) * sp,
+              vy: Math.sin(a) * sp,
+              r: (1 + Math.random() * 2) * dpr,
+              hue: (base + Math.random() * 360) % 360,
+              life: 0.6 + Math.random() * 0.5
+            });
+          }
+        }
+
+        function onMove(e) {
+          const now = performance.now();
+          if (now - lastTrail < 32) return;
+          lastTrail = now;
+          addSpark(e.clientX, e.clientY, 0.8, 2);
+        }
+
+        function onClick(e) {
+          addSpark(e.clientX, e.clientY, 6, 26);
+        }
+
+        function onVisibility() {
+          if (document.hidden) {
+            running = false;
+            cancelAnimationFrame(rafId);
+          } else if (root.dataset.rgb === "on" && !reduceMq.matches) {
+            if (!running) {
+              running = true;
+              frame();
+            }
+          }
+        }
+
+        let active = false;
+
+        function start() {
+          if (active) return; // idempotent: already running
+          active = true;
+          resize();
+          seedParticles();
+          window.addEventListener("resize", onResize);
+          document.addEventListener("visibilitychange", onVisibility);
+          if (reduceMq.matches) {
+            // Reduced motion: draw a single static frame, no loop, no trails.
+            running = true;
+            frame();
+            running = false;
+            return;
+          }
+          window.addEventListener("mousemove", onMove);
+          window.addEventListener("click", onClick);
+          if (!running) {
+            running = true;
+            frame();
+          }
+        }
+
+        function onResize() {
+          resize();
+          seedParticles();
+        }
+
+        function stop() {
+          if (!active) return;
+          active = false;
+          running = false;
+          cancelAnimationFrame(rafId);
+          window.removeEventListener("resize", onResize);
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("click", onClick);
+          document.removeEventListener("visibilitychange", onVisibility);
+          sparks = [];
+          particles = [];
+          ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        window.__fx = { start, stop };
+      })();
+    </script>
     <script is:inline>
       (() => {
         const key = "zxt-language";
@@ -137,13 +335,18 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
               toggle.setAttribute("aria-pressed", String(on));
               const label = on
                 ? language === "zh"
-                  ? "关闭 RGB 模式"
-                  : "Turn off RGB mode"
+                  ? "关闭炫酷模式"
+                  : "Turn off flashy mode"
                 : language === "zh"
-                  ? "开启 RGB 模式"
-                  : "Turn on RGB mode";
+                  ? "开启炫酷模式"
+                  : "Turn on flashy mode";
               toggle.setAttribute("aria-label", label);
             }
+          }
+
+          // Start/stop the particle + spark engine to match the mode.
+          if (window.__fx) {
+            on ? window.__fx.start() : window.__fx.stop();
           }
         }
 
