@@ -24,9 +24,9 @@
 }
 
 :root[data-rgb="on"] {
-  --accent: hsl(var(--hue) 85% 52%);
-  --accent-strong: hsl(var(--hue) 90% 68%);
-  --grid-line: hsl(var(--hue) 85% 52% / 0.09);
+  --accent: hsl(var(--hue) 80% 40%);
+  --accent-strong: hsl(var(--hue) 85% 48%);
+  --grid-line: hsl(var(--hue) 80% 40% / 0.1);
   animation: rgb-hue-cycle 8s linear infinite;
 }
 
@@ -36,18 +36,114 @@
   --grid-line: hsl(var(--hue) 95% 62% / 0.1);
 }
 
+/* Light + flashy mode: give cards a resting accent outline so their edges stay
+ * legible against the white surface as the hue cycles. */
+:root[data-rgb="on"]:not([data-theme="dark"]) .card {
+  border-color: color-mix(in srgb, var(--accent) 60%, var(--line));
+}
+
+/* ── Flashy mode visual layers (only shown when RGB/flashy mode is on) ── */
+#fx-aurora,
+#fx-canvas {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  display: none;
+}
+
+#fx-canvas {
+  width: 100%;
+  height: 100%;
+}
+
+/* Drifting aurora built from hue-following radial blobs. */
+:root[data-rgb="on"] #fx-aurora {
+  display: block;
+  background:
+    radial-gradient(
+      42% 55% at 18% 28%,
+      hsl(var(--hue) 90% 55% / 0.5) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      48% 50% at 82% 38%,
+      hsl(calc(var(--hue) + 120deg) 90% 55% / 0.42) 0%,
+      transparent 60%
+    ),
+    radial-gradient(
+      45% 45% at 50% 82%,
+      hsl(calc(var(--hue) + 240deg) 90% 55% / 0.42) 0%,
+      transparent 62%
+    );
+  background-size: 200% 200%;
+  filter: blur(56px) saturate(1.2);
+  opacity: 0.75;
+  animation: fx-aurora-drift 20s ease-in-out infinite;
+}
+
+:root[data-rgb="on"][data-theme="dark"] #fx-aurora {
+  opacity: 0.6;
+}
+
+:root[data-rgb="on"] #fx-canvas {
+  display: block;
+}
+
+@keyframes fx-aurora-drift {
+  0%,
+  100% {
+    background-position: 0% 0%;
+  }
+  50% {
+    background-position: 100% 100%;
+  }
+}
+
+/* Flashy-mode headings. Light theme: crisp accent text with a tight, close
+ * glow (a big blurry shadow reads as "muddy" on a light bg, not as glow).
+ * Dark theme keeps the full multi-layer neon glow below. */
+:root[data-rgb="on"] h1 {
+  color: var(--accent-strong);
+  text-shadow:
+    0 0 1px color-mix(in srgb, var(--accent) 55%, transparent),
+    0 1px 2px color-mix(in srgb, var(--accent) 30%, transparent);
+  animation: fx-neon-flicker 4s infinite;
+}
+
+/* Dark theme: real neon glow (bright glyph on near-black reads as luminous). */
+:root[data-rgb="on"][data-theme="dark"] h1 {
+  text-shadow:
+    0 0 6px color-mix(in srgb, var(--accent) 80%, transparent),
+    0 0 16px color-mix(in srgb, var(--accent) 60%, transparent),
+    0 0 32px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+@keyframes fx-neon-flicker {
+  0%,
+  18%,
+  22%,
+  100% {
+    opacity: 1;
+  }
+  20% {
+    opacity: 0.72;
+  }
+}
+
 :root {
   color-scheme: light;
 
-  /* Color tokens — cool HUD / console palette (light) */
-  --bg: #eef3f8;
+  /* Color tokens — cool HUD / console palette (light), tuned for a crisper,
+   * more vivid electric-cyan accent with clearer surfaces and borders. */
+  --bg: #e9f0f7;
   --surface: #ffffff;
-  --surface-muted: #e2ebf3;
-  --text: #0f1b2a;
-  --muted: #55677d;
-  --line: #c2d2e0;
-  --accent: #0a7ea4;
-  --accent-strong: #075673;
+  --surface-muted: #dde8f2;
+  --text: #0c1622;
+  --muted: #4f6178;
+  --line: #b3c7d8;
+  --accent: #0891b2;
+  --accent-strong: #075a76;
   --green: #2f8f6b;
   --yellow: #b07818;
 
@@ -56,7 +152,7 @@
   --glow-soft: 0 0 12px -2px color-mix(in srgb, var(--accent) 35%, transparent);
   --glow-strong: 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent),
     0 0 16px -2px color-mix(in srgb, var(--accent) 40%, transparent);
-  --grid-line: rgba(10, 126, 164, 0.06);
+  --grid-line: rgba(8, 145, 178, 0.07);
   --grid-size: 40px;
   --clip-corner: 10px;
   --hud-corner: polygon(
@@ -386,14 +482,39 @@ html[data-lang="zh"] .language-toggle .lang-zh {
   position: absolute;
   inset: 0 0 auto 0;
   height: 2px;
+  z-index: 1;
   background: linear-gradient(
     90deg,
     transparent,
     color-mix(in srgb, var(--accent) 65%, transparent),
     transparent
   );
-  opacity: 0.5;
+  opacity: 0.7;
   transition: opacity var(--dur-med) var(--ease);
+}
+
+/* Diagonal light band that sweeps across the card on hover. Colour follows
+ * --accent so it recolours in flashy mode. Clipped by the card's overflow. */
+.card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-120%);
+  background: linear-gradient(
+    115deg,
+    transparent 30%,
+    color-mix(in srgb, var(--accent) 22%, transparent) 50%,
+    transparent 70%
+  );
+  transition: transform 620ms var(--ease), opacity var(--dur-med) var(--ease);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card::after {
+    display: none;
+  }
 }
 
 .tag-list {
