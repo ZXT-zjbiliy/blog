@@ -26,6 +26,18 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
         document.documentElement.lang = language === "zh" ? "zh-CN" : "en";
       })();
     </script>
+    <script is:inline>
+      (() => {
+        const saved = localStorage.getItem("zxt-theme");
+        const theme =
+          saved === "dark" || saved === "light"
+            ? saved
+            : window.matchMedia("(prefers-color-scheme: dark)").matches
+              ? "dark"
+              : "light";
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <slot />
@@ -63,6 +75,35 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
             if (toggle instanceof HTMLButtonElement) {
               toggle.setAttribute("aria-pressed", String(language === "zh"));
               toggle.setAttribute("aria-label", language === "zh" ? "Switch to English" : "切换到中文");
+            }
+          }
+        }
+
+        const themeKey = "zxt-theme";
+
+        function currentTheme() {
+          return root.dataset.theme === "dark" ? "dark" : "light";
+        }
+
+        function applyTheme(theme, persist) {
+          root.dataset.theme = theme;
+          if (persist) {
+            localStorage.setItem(themeKey, theme);
+          }
+
+          const language = currentLanguage();
+          for (const toggle of document.querySelectorAll("[data-theme-toggle]")) {
+            if (toggle instanceof HTMLButtonElement) {
+              toggle.setAttribute("aria-pressed", String(theme === "dark"));
+              const label =
+                theme === "dark"
+                  ? language === "zh"
+                    ? "切换到浅色模式"
+                    : "Switch to light theme"
+                  : language === "zh"
+                    ? "切换到深色模式"
+                    : "Switch to dark theme";
+              toggle.setAttribute("aria-label", label);
             }
           }
         }
@@ -145,6 +186,7 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
         }
 
         applyLanguage(currentLanguage());
+        applyTheme(currentTheme(), false);
 
         const views = trackCurrentNoteView(readNoteViews());
         updateNoteViewDisplays(views);
@@ -154,8 +196,23 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
           toggle.addEventListener("click", () => {
             applyLanguage(currentLanguage() === "zh" ? "en" : "zh");
             updateNoteViewDisplays(readNoteViews());
+            applyTheme(currentTheme(), false);
           });
         }
+
+        for (const toggle of document.querySelectorAll("[data-theme-toggle]")) {
+          toggle.addEventListener("click", () => {
+            applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
+          });
+        }
+
+        // Follow the system preference until the user makes an explicit choice.
+        window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", (event) => {
+          if (localStorage.getItem(themeKey)) {
+            return;
+          }
+          applyTheme(event.matches ? "dark" : "light", false);
+        });
       })();
     </script>
   </body>

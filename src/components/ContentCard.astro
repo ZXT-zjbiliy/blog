@@ -46,6 +46,16 @@ const {
 </article>
 
 <style>
+  .content-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+  }
+
+  .content-card h3 a {
+    transition: color var(--dur-fast) var(--ease);
+  }
+
   .content-card h3 {
     margin: 8px 0;
     line-height: 1.25;

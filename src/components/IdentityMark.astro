@@ -17,10 +17,10 @@ const { compact = false } = Astro.props;
     justify-content: center;
     width: 44px;
     height: 44px;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     background:
       linear-gradient(135deg, rgba(23, 107, 135, 0.16), rgba(70, 122, 84, 0.14)),
-      #fff;
+      var(--surface);
     border: 1px solid var(--line);
     color: var(--accent-strong);
     font-weight: 800;

@@ -2,6 +2,7 @@
 import BaseLayout from "@layouts/BaseLayout.astro";
 import IdentityMark from "@components/IdentityMark.astro";
 import LanguageToggle from "@components/LanguageToggle.astro";
+import ThemeToggle from "@components/ThemeToggle.astro";
 import { sitePath } from "@lib/site-data";
 
 const { title, description } = Astro.props;
@@ -37,6 +38,7 @@ const links = [
       </nav>
       <div class="sidebar-tools">
         <LanguageToggle />
+        <ThemeToggle />
       </div>
     </aside>
     <main class="portal-main">
@@ -107,6 +109,13 @@ const links = [
     font-size: 1.25rem;
     font-weight: 900;
     line-height: 1;
+    transition: background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+
+  .sidebar-toggle span {
+    display: inline-block;
+    transition: transform var(--dur-med) var(--ease);
   }
 
   .sidebar-toggle:hover {
@@ -128,6 +137,7 @@ const links = [
     color: var(--muted);
     font-weight: 700;
     padding: 8px 10px;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
   }
 
   .nav-short {
@@ -148,6 +158,9 @@ const links = [
   }
 
   .sidebar-tools {
+    display: flex;
+    align-items: center;
+    gap: 10px;
     margin-top: 18px;
   }
 

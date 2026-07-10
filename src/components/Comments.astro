@@ -1,0 +1,100 @@
+---
+import { giscusConfig, isGiscusConfigured } from "@lib/giscus";
+
+const configured = isGiscusConfigured();
+---
+
+{configured ? (
+  <section class="comments" aria-label="Comments">
+    <h2 class="comments-title" data-zh="评论">Comments</h2>
+    <p class="comments-hint muted" data-zh="用 GitHub 账号登录即可评论和点赞。">
+      Sign in with GitHub to comment and react.
+    </p>
+    <div
+      class="giscus"
+      data-giscus
+      data-repo={giscusConfig.repo}
+      data-repo-id={giscusConfig.repoId}
+      data-category={giscusConfig.category}
+      data-category-id={giscusConfig.categoryId}
+      data-mapping={giscusConfig.mapping}
+      data-reactions-enabled={giscusConfig.reactionsEnabled}
+      data-loading={giscusConfig.loading}
+      data-lang={giscusConfig.language}
+    ></div>
+  </section>
+) : null}
+
+<style>
+  .comments {
+    margin-top: 40px;
+    border-top: 1px solid var(--line);
+    padding-top: 22px;
+  }
+
+  .comments-title {
+    margin: 0 0 4px;
+    font-size: 1.4rem;
+  }
+
+  .comments-hint {
+    margin: 0 0 16px;
+    font-size: 0.9rem;
+  }
+</style>
+
+<script>
+  (() => {
+    const mount = document.querySelector<HTMLElement>("[data-giscus]");
+    if (!mount) {
+      return;
+    }
+
+    const currentLang = () => (localStorage.getItem("zxt-language") === "zh" ? "zh-CN" : "en");
+    const currentTheme = () =>
+      document.documentElement.dataset.theme === "dark" ? "dark" : "light";
+
+    const load = () => {
+      const script = document.createElement("script");
+      script.src = "https://giscus.app/client.js";
+      script.async = true;
+      script.crossOrigin = "anonymous";
+      script.setAttribute("data-repo", mount.dataset.repo ?? "");
+      script.setAttribute("data-repo-id", mount.dataset.repoId ?? "");
+      script.setAttribute("data-category", mount.dataset.category ?? "");
+      script.setAttribute("data-category-id", mount.dataset.categoryId ?? "");
+      script.setAttribute("data-mapping", mount.dataset.mapping ?? "pathname");
+      script.setAttribute("data-strict", "0");
+      script.setAttribute("data-reactions-enabled", mount.dataset.reactionsEnabled ?? "1");
+      script.setAttribute("data-emit-metadata", "0");
+      script.setAttribute("data-input-position", "top");
+      script.setAttribute("data-theme", currentTheme());
+      script.setAttribute("data-lang", currentLang());
+      script.setAttribute("data-loading", mount.dataset.loading ?? "lazy");
+      mount.append(script);
+    };
+
+    load();
+
+    // Keep the widget language in sync with the site language toggle.
+    const sendConfig = (message: Record<string, unknown>) => {
+      const frame = document.querySelector<HTMLIFrameElement>("iframe.giscus-frame");
+      frame?.contentWindow?.postMessage({ giscus: { setConfig: message } }, "https://giscus.app");
+    };
+
+    for (const toggle of document.querySelectorAll("[data-language-toggle]")) {
+      toggle.addEventListener("click", () => {
+        // Toggle handler flips the value before this runs on some browsers,
+        // so read the freshly stored language.
+        sendConfig({ lang: currentLang() });
+      });
+    }
+
+    // Keep the widget theme in sync with the site theme toggle.
+    for (const toggle of document.querySelectorAll("[data-theme-toggle]")) {
+      toggle.addEventListener("click", () => {
+        sendConfig({ theme: currentTheme() });
+      });
+    }
+  })();
+</script>
