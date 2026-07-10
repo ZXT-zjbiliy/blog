@@ -1,6 +1,6 @@
 # Project Memory
 
-Last updated: 2026-07-09
+Last updated: 2026-07-10
 
 > This project keeps two mirrored memory files at the repo root: `CLAUDE.md` (for Claude) and `AGENTS.md` (for Codex). They must be kept identical in content. Whenever you update project memory, update BOTH files.
 
@@ -76,6 +76,22 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
 - Homepage Chinese copy should not end paragraphs or short snippets with Chinese full stops.
 - Keep Chinese text valid UTF-8. PowerShell may display Chinese as mojibake, so use Node or build output for reliable checks.
 - Existing translations live mainly in `src/lib/i18n.ts` and inline `data-zh` attributes.
+
+## Design System
+
+- All visual styling is token-driven and hand-written CSS. No framework (no Tailwind), no PostCSS.
+- Design tokens live in `:root` in `src/styles/global.css`: color, spacing (`--space-1..10`), radius (`--radius-sm/md/lg/pill`, with `--radius` aliased to `--radius-md`), elevation (`--shadow-sm/md/lg`), typography (`--font-size-*`, `--line-*`), font families (`--font-sans`, `--font-mono`), and motion (`--ease`, `--dur-fast/med/slow`).
+- Prefer tokens over magic numbers. Derive accent tints/shades with `color-mix(in srgb, var(--accent) N%, ...)` rather than new hex values.
+- Visual direction is a **cool HUD / spaceship-console sci-fi** look (both light and dark). The accent is electric cyan-teal (`--accent` ≈ `#0a7ea4` light / `#2fd8ef` dark). Sci-fi tokens in `:root`: `--accent-rgb` (the accent as an `R, G, B` triple for `rgba(var(--accent-rgb), a)` glows), `--glow-soft` / `--glow-strong` (box/text-shadow glows), `--grid-line` + `--grid-size` (faint HUD grid drawn on `body`), `--clip-corner` + `--hud-corner` (clip-path for notched panel corners), plus `.hud-frame` / `.hud-label` utility classes.
+- Sci-fi treatments applied: faint grid backdrop on `body`; card top accent hairline (`.card::before`) that lights up on hover with `--glow-soft`; button/toggle glow on hover; mono uppercase letterspaced eyebrows and section headings with an accent marker bar; TOC active state with a glowing left border; code blocks with an accent-tinted border + inner glow; sidebar with a glowing right edge. Keep glows restrained in light mode, stronger in dark.
+- The sans font is self-hosted Inter via `@fontsource-variable/inter` (imported at the top of `global.css`); code uses a system monospace stack. Run `npm install` after pulling if the font dep is missing.
+- Dark mode: `:root[data-theme="dark"]` overrides the color + shadow tokens. The theme follows the OS `prefers-color-scheme` until the user makes an explicit choice, which is persisted in `localStorage` under `zxt-theme`.
+  - Anti-FOUC theme script runs in `<head>` of `BaseLayout.astro`; the apply/toggle logic lives in the single body IIFE there (mirrors the language-toggle pattern).
+  - `ThemeToggle.astro` (sun/moon glyphs, `data-theme-toggle`, bilingual via `aria-label`) sits next to `LanguageToggle` in `PortalLayout` sidebar tools and `SiteHeader`.
+  - giscus theme is synced in `Comments.astro` (reads `data-theme`, posts `setConfig` on toggle).
+- Motion: interactive elements transition with the motion tokens; a global `prefers-reduced-motion` guard in `global.css` neutralizes all transitions/animations.
+- Shared page-title styling is global (`.prose > h1`, `.page-head h1`, `.page-head`) — do not re-add per-page `h1` style blocks. The homepage hero `h1` is an intentional scoped exception.
+- Cards (`.card`) carry `--shadow-sm`; clickable `.content-card` lifts on hover. Keep the required `data-note-card` / `data-note-view-count` attributes intact.
 
 ## Click Counts
 

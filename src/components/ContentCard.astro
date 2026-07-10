@@ -48,8 +48,12 @@ const {
 <style>
   .content-card:hover {
     transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    border-color: color-mix(in srgb, var(--accent) 30%, var(--line));
+    box-shadow: var(--shadow-md), var(--glow-soft);
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  }
+
+  .content-card:hover::before {
+    opacity: 1;
   }
 
   .content-card h3 a {

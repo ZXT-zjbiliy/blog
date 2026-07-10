@@ -9,17 +9,36 @@
 :root {
   color-scheme: light;
 
-  /* Color tokens */
-  --bg: #f7f8fb;
+  /* Color tokens — cool HUD / console palette (light) */
+  --bg: #eef3f8;
   --surface: #ffffff;
-  --surface-muted: #eef2f7;
-  --text: #18202f;
-  --muted: #647084;
-  --line: #d8dee9;
-  --accent: #176b87;
-  --accent-strong: #0f5066;
-  --green: #467a54;
-  --yellow: #9b6a18;
+  --surface-muted: #e2ebf3;
+  --text: #0f1b2a;
+  --muted: #55677d;
+  --line: #c2d2e0;
+  --accent: #0a7ea4;
+  --accent-strong: #075673;
+  --green: #2f8f6b;
+  --yellow: #b07818;
+
+  /* Sci-fi HUD tokens (glow, grid, clip corners) */
+  --accent-rgb: 10, 126, 164;
+  --glow-soft: 0 0 12px -2px rgba(var(--accent-rgb), 0.35);
+  --glow-strong: 0 0 4px rgba(var(--accent-rgb), 0.45),
+    0 0 16px -2px rgba(var(--accent-rgb), 0.4);
+  --grid-line: rgba(10, 126, 164, 0.06);
+  --grid-size: 40px;
+  --clip-corner: 10px;
+  --hud-corner: polygon(
+    0 var(--clip-corner),
+    var(--clip-corner) 0,
+    calc(100% - var(--clip-corner)) 0,
+    100% var(--clip-corner),
+    100% calc(100% - var(--clip-corner)),
+    calc(100% - var(--clip-corner)) 100%,
+    var(--clip-corner) 100%,
+    0 calc(100% - var(--clip-corner))
+  );
 
   /* Spacing scale (4px grid) */
   --space-1: 0.25rem;
@@ -69,22 +88,29 @@
   font-family: var(--font-sans);
 }
 
-/* Dark theme token overrides — activated by [data-theme="dark"] (wired in phase 7) */
+/* Dark theme token overrides — cool HUD / spaceship-console palette */
 :root[data-theme="dark"] {
   color-scheme: dark;
-  --bg: #0f141c;
-  --surface: #161d29;
-  --surface-muted: #1e2735;
-  --text: #e7ecf4;
-  --muted: #9aa7ba;
-  --line: #2a3446;
-  --accent: #4ba7c4;
-  --accent-strong: #7cc6dd;
-  --green: #6fbf85;
-  --yellow: #d8a94a;
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --bg: #070c14;
+  --surface: #0d1622;
+  --surface-muted: #14212f;
+  --text: #d6e6f5;
+  --muted: #7d93ab;
+  --line: #1f3346;
+  --accent: #2fd8ef;
+  --accent-strong: #7ef0ff;
+  --green: #57e0a0;
+  --yellow: #f0c14b;
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4), 0 1px 3px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 14px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 12px 34px rgba(0, 0, 0, 0.6);
+
+  /* Sci-fi tokens tuned for dark: stronger, more saturated glow */
+  --accent-rgb: 47, 216, 239;
+  --glow-soft: 0 0 14px -2px rgba(var(--accent-rgb), 0.45);
+  --glow-strong: 0 0 5px rgba(var(--accent-rgb), 0.6),
+    0 0 20px -2px rgba(var(--accent-rgb), 0.5);
+  --grid-line: rgba(47, 216, 239, 0.07);
 }
 
 * {
@@ -93,9 +119,26 @@
 
 body {
   margin: 0;
-  background: var(--bg);
+  background-color: var(--bg);
+  /* Faint HUD grid backdrop */
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: var(--grid-size) var(--grid-size);
   color: var(--text);
   line-height: 1.6;
+}
+
+/* HUD panel: clipped corners + hairline accent frame. */
+.hud-frame {
+  clip-path: var(--hud-corner);
+}
+
+/* Terminal-style eyebrow/label. */
+.hud-label {
+  font-family: var(--font-mono);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 a {
@@ -136,9 +179,10 @@ a:hover {
 
 .eyebrow {
   color: var(--accent);
-  font-size: 0.78rem;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
 }
 
@@ -168,8 +212,9 @@ a:hover {
 }
 
 .button:hover {
-  border-color: color-mix(in srgb, var(--accent) 45%, var(--line));
-  box-shadow: var(--shadow-sm);
+  border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+  color: var(--accent-strong);
+  box-shadow: var(--shadow-sm), var(--glow-soft);
 }
 
 .button:active {
@@ -185,6 +230,16 @@ a:hover {
 .button.primary:hover {
   background: var(--accent-strong);
   border-color: var(--accent-strong);
+  box-shadow: var(--glow-strong);
+}
+
+/* On the bright cyan dark-mode accent, dark text reads better than white. */
+:root[data-theme="dark"] .button.primary {
+  color: #04121a;
+}
+
+:root[data-theme="dark"] .button.primary:hover {
+  color: #04121a;
 }
 
 .language-toggle {
@@ -217,6 +272,12 @@ html[data-lang="en"] .language-toggle .lang-en,
 html[data-lang="zh"] .language-toggle .lang-zh {
   background: var(--accent);
   color: white;
+  box-shadow: var(--glow-soft);
+}
+
+:root[data-theme="dark"] html[data-lang="en"] .language-toggle .lang-en,
+:root[data-theme="dark"] html[data-lang="zh"] .language-toggle .lang-zh {
+  color: #04121a;
 }
 
 .theme-toggle {
@@ -240,6 +301,7 @@ html[data-lang="zh"] .language-toggle .lang-zh {
 .theme-toggle:hover {
   border-color: var(--accent);
   color: var(--accent);
+  box-shadow: var(--glow-soft);
 }
 
 .theme-toggle .theme-icon {
@@ -277,14 +339,32 @@ html[data-lang="zh"] .language-toggle .lang-zh {
 }
 
 .card {
+  position: relative;
   min-height: 100%;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
   padding: 18px;
   box-shadow: var(--shadow-sm);
+  overflow: hidden;
   transition: transform var(--dur-med) var(--ease),
     box-shadow var(--dur-med) var(--ease), border-color var(--dur-med) var(--ease);
+}
+
+/* HUD accent hairline along the card's top edge. */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--accent) 65%, transparent),
+    transparent
+  );
+  opacity: 0.5;
+  transition: opacity var(--dur-med) var(--ease);
 }
 
 .tag-list {
@@ -328,9 +408,11 @@ html[data-lang="zh"] .language-toggle .lang-zh {
   max-width: 100%;
   overflow-x: auto;
   border-radius: var(--radius);
-  background: #101827;
+  border: 1px solid color-mix(in srgb, var(--accent) 22%, #1b2740);
+  background: #0a1120;
   color: #eef2f7;
   padding: 16px;
+  box-shadow: inset 0 0 24px -12px rgba(var(--accent-rgb), 0.5);
 }
 
 .prose pre code {
