@@ -6,6 +6,36 @@
  * properties, so these are a documented convention, used as literals):
  *   sm: 640px   md: 820px   lg: 1024px
  */
+
+/* RGB mode: register --hue as an animatable angle so it can be tweened.
+ * When [data-rgb="on"], --accent is derived from --hue and the hue cycles,
+ * so every glow/border/heading that follows --accent flows through the
+ * spectrum. Toggled via the RGB button (localStorage key zxt-rgb). */
+@property --hue {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: true;
+}
+
+@keyframes rgb-hue-cycle {
+  to {
+    --hue: 360deg;
+  }
+}
+
+:root[data-rgb="on"] {
+  --accent: hsl(var(--hue) 85% 52%);
+  --accent-strong: hsl(var(--hue) 90% 68%);
+  --grid-line: hsl(var(--hue) 85% 52% / 0.09);
+  animation: rgb-hue-cycle 8s linear infinite;
+}
+
+:root[data-rgb="on"][data-theme="dark"] {
+  --accent: hsl(var(--hue) 95% 62%);
+  --accent-strong: hsl(var(--hue) 100% 76%);
+  --grid-line: hsl(var(--hue) 95% 62% / 0.1);
+}
+
 :root {
   color-scheme: light;
 
@@ -21,11 +51,11 @@
   --green: #2f8f6b;
   --yellow: #b07818;
 
-  /* Sci-fi HUD tokens (glow, grid, clip corners) */
-  --accent-rgb: 10, 126, 164;
-  --glow-soft: 0 0 12px -2px rgba(var(--accent-rgb), 0.35);
-  --glow-strong: 0 0 4px rgba(var(--accent-rgb), 0.45),
-    0 0 16px -2px rgba(var(--accent-rgb), 0.4);
+  /* Sci-fi HUD tokens (glow, grid, clip corners). Glows follow --accent via
+   * color-mix so they recolor automatically when RGB mode animates the accent. */
+  --glow-soft: 0 0 12px -2px color-mix(in srgb, var(--accent) 35%, transparent);
+  --glow-strong: 0 0 4px color-mix(in srgb, var(--accent) 45%, transparent),
+    0 0 16px -2px color-mix(in srgb, var(--accent) 40%, transparent);
   --grid-line: rgba(10, 126, 164, 0.06);
   --grid-size: 40px;
   --clip-corner: 10px;
@@ -106,10 +136,9 @@
   --shadow-lg: 0 12px 34px rgba(0, 0, 0, 0.6);
 
   /* Sci-fi tokens tuned for dark: stronger, more saturated glow */
-  --accent-rgb: 47, 216, 239;
-  --glow-soft: 0 0 14px -2px rgba(var(--accent-rgb), 0.45);
-  --glow-strong: 0 0 5px rgba(var(--accent-rgb), 0.6),
-    0 0 20px -2px rgba(var(--accent-rgb), 0.5);
+  --glow-soft: 0 0 14px -2px color-mix(in srgb, var(--accent) 45%, transparent);
+  --glow-strong: 0 0 5px color-mix(in srgb, var(--accent) 60%, transparent),
+    0 0 20px -2px color-mix(in srgb, var(--accent) 50%, transparent);
   --grid-line: rgba(47, 216, 239, 0.07);
 }
 
@@ -412,7 +441,7 @@ html[data-lang="zh"] .language-toggle .lang-zh {
   background: #0a1120;
   color: #eef2f7;
   padding: 16px;
-  box-shadow: inset 0 0 24px -12px rgba(var(--accent-rgb), 0.5);
+  box-shadow: inset 0 0 24px -12px color-mix(in srgb, var(--accent) 50%, transparent);
 }
 
 .prose pre code {

@@ -38,6 +38,13 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
         document.documentElement.dataset.theme = theme;
       })();
     </script>
+    <script is:inline>
+      (() => {
+        if (localStorage.getItem("zxt-rgb") === "on") {
+          document.documentElement.dataset.rgb = "on";
+        }
+      })();
+    </script>
   </head>
   <body>
     <slot />
@@ -103,6 +110,38 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
                   : language === "zh"
                     ? "切换到深色模式"
                     : "Switch to dark theme";
+              toggle.setAttribute("aria-label", label);
+            }
+          }
+        }
+
+        const rgbKey = "zxt-rgb";
+
+        function rgbOn() {
+          return root.dataset.rgb === "on";
+        }
+
+        function applyRgb(on, persist) {
+          if (on) {
+            root.dataset.rgb = "on";
+          } else {
+            delete root.dataset.rgb;
+          }
+          if (persist) {
+            localStorage.setItem(rgbKey, on ? "on" : "off");
+          }
+
+          const language = currentLanguage();
+          for (const toggle of document.querySelectorAll("[data-rgb-toggle]")) {
+            if (toggle instanceof HTMLButtonElement) {
+              toggle.setAttribute("aria-pressed", String(on));
+              const label = on
+                ? language === "zh"
+                  ? "关闭 RGB 模式"
+                  : "Turn off RGB mode"
+                : language === "zh"
+                  ? "开启 RGB 模式"
+                  : "Turn on RGB mode";
               toggle.setAttribute("aria-label", label);
             }
           }
@@ -187,6 +226,7 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
 
         applyLanguage(currentLanguage());
         applyTheme(currentTheme(), false);
+        applyRgb(rgbOn(), false);
 
         const views = trackCurrentNoteView(readNoteViews());
         updateNoteViewDisplays(views);
@@ -197,12 +237,24 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
             applyLanguage(currentLanguage() === "zh" ? "en" : "zh");
             updateNoteViewDisplays(readNoteViews());
             applyTheme(currentTheme(), false);
+            applyRgb(rgbOn(), false);
           });
         }
 
         for (const toggle of document.querySelectorAll("[data-theme-toggle]")) {
           toggle.addEventListener("click", () => {
             applyTheme(currentTheme() === "dark" ? "light" : "dark", true);
+          });
+        }
+
+        for (const toggle of document.querySelectorAll("[data-rgb-toggle]")) {
+          toggle.addEventListener("click", () => {
+            applyRgb(!rgbOn(), true);
+            // Emit the radiating colour ring from the button.
+            toggle.classList.remove("burst");
+            void toggle.offsetWidth; // reflow so the animation can replay
+            toggle.classList.add("burst");
+            setTimeout(() => toggle.classList.remove("burst"), 700);
           });
         }
 

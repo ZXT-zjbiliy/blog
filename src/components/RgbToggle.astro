@@ -1,0 +1,102 @@
+<button class="rgb-toggle" type="button" data-rgb-toggle aria-label="Toggle RGB mode" aria-pressed="false">
+  <span class="rgb-core" aria-hidden="true"></span>
+  <span class="rgb-ring" aria-hidden="true"></span>
+</button>
+
+<style>
+  .rgb-toggle {
+    position: relative;
+    display: inline-grid;
+    place-items: center;
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    cursor: pointer;
+    padding: 0;
+    overflow: visible;
+    transition: border-color var(--dur-fast) var(--ease),
+      box-shadow var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  }
+
+  .rgb-toggle:hover {
+    border-color: color-mix(in srgb, var(--accent) 55%, var(--line));
+    box-shadow: var(--glow-soft);
+  }
+
+  .rgb-toggle:active {
+    transform: translateY(1px);
+  }
+
+  /* The spinning rainbow core disc. */
+  .rgb-core {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: conic-gradient(
+      from 0deg,
+      #ff004c,
+      #ff9500,
+      #ffee00,
+      #33ff00,
+      #00e5ff,
+      #4d5bff,
+      #d400ff,
+      #ff004c
+    );
+    box-shadow: 0 0 8px -1px rgba(0, 0, 0, 0.35);
+  }
+
+  /* When RGB mode is on, the core spins to advertise the live state. */
+  :global(:root[data-rgb="on"]) .rgb-core {
+    animation: rgb-core-spin 3s linear infinite;
+  }
+
+  @keyframes rgb-core-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  /* Radiating colour ring emitted on click. */
+  .rgb-ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    pointer-events: none;
+    opacity: 0;
+  }
+
+  .rgb-toggle.burst .rgb-ring {
+    animation: rgb-radiate 0.7s var(--ease);
+  }
+
+  @keyframes rgb-radiate {
+    0% {
+      opacity: 0.9;
+      transform: scale(0.4);
+      box-shadow:
+        0 0 0 2px #ff004c,
+        0 0 14px 4px #00e5ff,
+        0 0 26px 8px #d400ff;
+    }
+    100% {
+      opacity: 0;
+      transform: scale(3.6);
+      box-shadow:
+        0 0 0 2px transparent,
+        0 0 30px 10px transparent,
+        0 0 48px 16px transparent;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    :global(:root[data-rgb="on"]) .rgb-core {
+      animation: none;
+    }
+    .rgb-toggle.burst .rgb-ring {
+      animation: none;
+    }
+  }
+</style>
