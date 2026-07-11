@@ -101,12 +101,14 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
 
 ## Click Counts
 
-- Note click/view counts are local browser counts, not public global analytics.
-- Counts are stored in `localStorage` under `zxt-note-views`.
-- Note detail pages increment the count for that note.
-- Note cards display the local count.
-- Homepage "Featured notes" renders all notes as a sorting pool, then client-side sorting brings locally most-viewed notes first and CSS shows only the top three.
-- This works on static GitHub Pages without a backend, but each visitor sees their own local counts.
+- Note view counts are backed by a **Cloudflare Worker + KV** (online, shared across all visitors).
+- Worker URL: `https://blog-views.xt-zhang.workers.dev`; KV binding name: `VIEWS`.
+- API: `GET /counts` returns `{noteId: count}` JSON; `POST /increment` body `{id}` increments and returns `{id, count}`.
+- On every page load, `fetchNoteViews()` in `BaseLayout.astro` fetches all counts and feeds them to `updateNoteViewDisplays()` and `sortNoteCardsByViews()`.
+- On note detail pages, `incrementCurrentNoteView()` fires a POST to `/increment` (fire-and-forget). Deduplication is handled by `sessionStorage` key `zxt-viewed` (array of seen note IDs) — the same note is only counted once per browser session.
+- Homepage "Featured notes" sorts cards by online view count (descending) and CSS hides cards past the third.
+- Fallback: if the Worker fetch fails, counts gracefully degrade to zero — the page still renders normally.
+- DOM hooks (`data-note-view-count`, `data-note-view-root`, `data-note-card`, `data-sort-notes-by-views`, `data-note-id`) are unchanged; tests pass.
 
 ## Sidebar UI
 

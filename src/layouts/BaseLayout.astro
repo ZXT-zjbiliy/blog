@@ -350,22 +350,42 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
           }
         }
 
-        const noteViewsKey = "zxt-note-views";
+        // Online view counter backed by a Cloudflare Worker + KV.
+        const viewsApi = "https://blog-views.xt-zhang.workers.dev";
+        const viewedKey = "zxt-viewed";
 
-        function readNoteViews() {
+        async function fetchNoteViews() {
           try {
-            return JSON.parse(localStorage.getItem(noteViewsKey) ?? "{}");
+            const res = await fetch(`${viewsApi}/counts`);
+            if (!res.ok) return {};
+            return await res.json();
           } catch {
             return {};
           }
         }
 
-        function writeNoteViews(views) {
-          localStorage.setItem(noteViewsKey, JSON.stringify(views));
+        function alreadyViewed(noteId) {
+          try {
+            const seen = JSON.parse(sessionStorage.getItem(viewedKey) ?? "[]");
+            return Array.isArray(seen) && seen.includes(noteId);
+          } catch {
+            return false;
+          }
+        }
+
+        function markViewed(noteId) {
+          try {
+            const seen = JSON.parse(sessionStorage.getItem(viewedKey) ?? "[]");
+            const next = Array.isArray(seen) ? seen : [];
+            if (!next.includes(noteId)) next.push(noteId);
+            sessionStorage.setItem(viewedKey, JSON.stringify(next));
+          } catch {
+            /* ignore storage errors */
+          }
         }
 
         function noteViewLabel(count, language) {
-          return language === "zh" ? `${count} 次点击` : `${count} views`;
+          return language === "zh" ? ` · ${count} 次点击` : ` · ${count} views`;
         }
 
         function noteIdForElement(element) {
@@ -414,31 +434,58 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
           }
         }
 
-        function trackCurrentNoteView(views) {
+        // Fire-and-forget increment for the current note page. Returns the new
+        // count so the caller can patch the local copy without a re-fetch.
+        async function incrementCurrentNoteView() {
           const currentNote = document.querySelector("[data-note-view-root][data-note-id]");
-
           if (!(currentNote instanceof HTMLElement) || !currentNote.dataset.noteId) {
-            return views;
+            return undefined;
           }
-
           const noteId = currentNote.dataset.noteId;
-          views[noteId] = Number(views[noteId] ?? 0) + 1;
-          writeNoteViews(views);
-          return views;
+          // Only count once per browser session per note.
+          if (alreadyViewed(noteId)) {
+            return undefined;
+          }
+          markViewed(noteId);
+          try {
+            const res = await fetch(`${viewsApi}/increment`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ id: noteId })
+            });
+            if (!res.ok) return undefined;
+            const data = await res.json();
+            return { noteId, count: Number(data.count) };
+          } catch {
+            return undefined;
+          }
         }
+
+        // Latest known counts, kept in memory so language toggles can repaint.
+        let noteViews = {};
 
         applyLanguage(currentLanguage());
         applyTheme(currentTheme(), false);
         applyRgb(rgbOn(), false);
 
-        const views = trackCurrentNoteView(readNoteViews());
-        updateNoteViewDisplays(views);
-        sortNoteCardsByViews(views);
+        // Load counts online, then repaint and sort. Increment runs in parallel.
+        (async () => {
+          const [counts, bump] = await Promise.all([
+            fetchNoteViews(),
+            incrementCurrentNoteView()
+          ]);
+          noteViews = counts && typeof counts === "object" ? counts : {};
+          if (bump && Number.isFinite(bump.count)) {
+            noteViews[bump.noteId] = bump.count;
+          }
+          updateNoteViewDisplays(noteViews);
+          sortNoteCardsByViews(noteViews);
+        })();
 
         for (const toggle of document.querySelectorAll("[data-language-toggle]")) {
           toggle.addEventListener("click", () => {
             applyLanguage(currentLanguage() === "zh" ? "en" : "zh");
-            updateNoteViewDisplays(readNoteViews());
+            updateNoteViewDisplays(noteViews);
             applyTheme(currentTheme(), false);
             applyRgb(rgbOn(), false);
           });
