@@ -23,4 +23,27 @@ describe("site introduction copy", () => {
       'data-zh="课程学习与知识整理">Coursework and knowledge organization'
     );
   });
+
+  it("uses the approved About narrative and public email", () => {
+    const about = read("src/pages/about.astro");
+
+    expect(about).toContain(
+      'description="About ZXT and this personal archive of notes, projects, and experiments."'
+    );
+    expect(about).toContain(
+      'data-zh="这是我持续整理学习过程和项目实践的地方。课程笔记、公开项目与实验记录会留在这里，方便分享，也方便我在需要时重新找到当时的思路。"'
+    );
+    expect(about).toContain(
+      'data-zh="我希望它更像一份长期维护的个人档案，而不是一张塞满经历的简历。内容会随着学习和项目推进慢慢更新。"'
+    );
+    expect(about).toContain(
+      "This is where I keep an ongoing record of what I learn and build."
+    );
+    expect(about).toContain('data-zh="🏆 学习期间获得过一些学科竞赛奖项"');
+    expect(about).toContain(
+      "I mostly work with Python, C/C++, PyTorch, CUDA, TypeScript, Docker, and Linux."
+    );
+    expect(about).toContain("mailto:xt.zhang@zju.edu.cn");
+    expect(about).not.toContain("3240102335@zju.edu.cn");
+  });
 });
