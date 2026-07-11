@@ -10,12 +10,15 @@ const notes = sortByDateDesc(visibleEntries(await getCollection("notes")));
 const tags = getAllTags(notes);
 ---
 
-<PortalLayout title="Notes" description="Personal notes and engineering writing.">
+<PortalLayout
+  title="Notes"
+  description="Coursework and learning notes organized for review and reference."
+>
   <section class="page-head">
-    <p class="eyebrow" data-zh="知识库">Knowledge base</p>
+    <p class="eyebrow" data-zh="学习记录">Learning notes</p>
     <h1 data-zh="笔记">Notes</h1>
-    <p class="muted" data-zh="按分类、标签和日期搜索或浏览笔记。">
-      Search and browse notes by category, tag, and date.
+    <p class="muted" data-zh="持续整理的课程与学习笔记，可以按分类、标签和日期查找。">
+      Coursework and learning notes, organized by category, tag, and date.
     </p>
     <input
       id="note-search"

@@ -8,12 +8,15 @@ import { sortByDateDesc, visibleEntries } from "@lib/site-data";
 const projects = sortByDateDesc(visibleEntries(await getCollection("projects")));
 ---
 
-<PortalLayout title="Projects" description="Selected public projects and writeups.">
+<PortalLayout
+  title="Projects"
+  description="Public projects, implementation experiments, and engineering retrospectives."
+>
   <section class="page-head">
-    <p class="eyebrow" data-zh="项目展架">Project shelf</p>
+    <p class="eyebrow" data-zh="实践记录">Project log</p>
     <h1 data-zh="项目">Projects</h1>
-    <p class="muted" data-zh="这里放公开仓库、实验项目和工程复盘">
-      A compact list of public repositories, experiments, and engineering writeups.
+    <p class="muted" data-zh="这里记录我实际做过的公开项目，以及实现过程中的实验和复盘。">
+      Public projects I have built, together with experiments and notes from the implementation process.
     </p>
   </section>
 

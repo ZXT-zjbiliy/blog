@@ -8,12 +8,15 @@ import { sortByDateDesc, visibleEntries } from "@lib/site-data";
 const topics = sortByDateDesc(visibleEntries(await getCollection("topics")));
 ---
 
-<PortalLayout title="Topics" description="Curated series connecting notes and projects.">
+<PortalLayout
+  title="Topics"
+  description="Curated reading paths connecting related notes and projects."
+>
   <section class="page-head">
-    <p class="eyebrow" data-zh="系列">Series</p>
+    <p class="eyebrow" data-zh="阅读线索">Reading paths</p>
     <h1 data-zh="主题">Topics</h1>
-    <p class="muted" data-zh="连接笔记、项目和阅读路径的长期线索。">
-      Durable threads that connect notes, projects, and reading paths.
+    <p class="muted" data-zh="按主题串联相关笔记与项目，形成更连贯的阅读路径。">
+      Curated paths that connect related notes and projects.
     </p>
   </section>
 
