@@ -53,14 +53,14 @@ describe("site introduction copy", () => {
         source: read("src/pages/notes/index.astro"),
         description: "Coursework and learning notes organized for review and reference.",
         eyebrow: 'data-zh="学习记录">Learning notes',
-        chinese: 'data-zh="持续整理的课程与学习笔记，可以按分类、标签和日期查找。',
+        chinese: 'data-zh="持续整理的课程与学习笔记，可以按分类、标签和日期查找。"',
         english: "Coursework and learning notes, organized by category, tag, and date."
       },
       {
         source: read("src/pages/projects/index.astro"),
         description: "Public projects, implementation experiments, and engineering retrospectives.",
         eyebrow: 'data-zh="实践记录">Project log',
-        chinese: 'data-zh="这里记录我实际做过的公开项目，以及实现过程中的实验和复盘。',
+        chinese: 'data-zh="这里记录我实际做过的公开项目，以及实现过程中的实验和复盘。"',
         english:
           "Public projects I have built, together with experiments and notes from the implementation process."
       },
@@ -68,7 +68,7 @@ describe("site introduction copy", () => {
         source: read("src/pages/topics/index.astro"),
         description: "Curated reading paths connecting related notes and projects.",
         eyebrow: 'data-zh="阅读线索">Reading paths',
-        chinese: 'data-zh="按主题串联相关笔记与项目，形成更连贯的阅读路径。',
+        chinese: 'data-zh="按主题串联相关笔记与项目，形成更连贯的阅读路径。"',
         english: "Curated paths that connect related notes and projects."
       }
     ];
