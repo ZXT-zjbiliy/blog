@@ -17,21 +17,20 @@ const featuredProjects = featuredEntries(allProjects, 3);
 const recentUpdates = notes.slice(0, 3);
 ---
 
-<BaseLayout title="ZXT Notes" description="Course notes, public projects, and AI experiments.">
+<BaseLayout title="ZXT Notes" description="Course notes, public projects, and AI experiments by ZXT.">
   <div class="container">
     <SiteHeader />
 
     <main>
       <section class="hero">
         <div>
-          <p class="eyebrow" data-zh="个人站点">Personal portal</p>
+          <p class="eyebrow" data-zh="个人档案">Personal archive</p>
           <h1 data-zh="你好，我是 ZXT">Hi, I am ZXT</h1>
           <p
             class="hero-copy"
-            data-zh="这里整理我的课程笔记、工程项目和 AI 实验记录，方便公开分享，也方便之后回看"
+            data-zh="这里整理课程学习中的笔记、实际做过的项目和一些 AI 实验，既公开分享，也留给之后的自己回看"
           >
-            A compact home for my course notes, engineering projects, and AI experiments,
-            built so the useful details stay easy to revisit.
+            A growing archive of course notes, projects I have built, and AI experiments—shared openly and kept easy to revisit.
           </p>
           <div class="button-row">
             <a class="button primary" href={sitePath("/notes")} data-zh="阅读笔记">Read notes</a>
@@ -42,7 +41,7 @@ const recentUpdates = notes.slice(0, 3);
           <IdentityMark />
           <p class="eyebrow" data-zh="当前关注">Current focus</p>
           <ul>
-            <li data-zh="课程笔记与知识整理">Course notes and knowledge organization</li>
+            <li data-zh="课程学习与知识整理">Coursework and knowledge organization</li>
             <li data-zh="计算机视觉与多模态模型">Computer vision and multimodal models</li>
             <li data-zh="浏览器扩展与工程实践">Browser extensions and engineering practice</li>
           </ul>
