@@ -18,10 +18,10 @@
 export const giscusConfig = {
   repo: "ZXT-zjbiliy/blog" as `${string}/${string}`,
   // From giscus.app after selecting the repo:
-  repoId: "",
+  repoId: "R_kgDOTN4hkQ",
   // The Discussion category to store comments in:
-  category: "Comments",
-  categoryId: "",
+  category: "Announcements",
+  categoryId: "DIC_kwDOTN4hkc4DAqy2",
   // Map each page to its own discussion by URL pathname.
   mapping: "pathname",
   // "1" enables the up-vote / reaction (like) buttons on the main post.
