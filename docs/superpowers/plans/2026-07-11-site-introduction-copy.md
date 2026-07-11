@@ -17,7 +17,7 @@
 - Do not change layouts, styles, content cards, note descriptions, project descriptions, topic content, long-form content, dependencies, or project memory.
 - Keep `AGENTS.md` and `CLAUDE.md` identical; neither file needs a change for this content-only refresh.
 - Use `apply_patch` for every manual edit.
-- Run commands from `E:\blog`.
+- Run commands from the isolated worktree `E:\blog\.worktrees\site-introduction-copy`.
 
 ## File Structure
 
