@@ -104,8 +104,10 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
       <p class="muted" data-zh={zh?.description}>{note.data.description}</p>
       <p class="muted">
         <time datetime={note.data.date.toISOString()}>{formatDate(note.data.date)}</time>
-        {note.data.updated ? <span data-zh={` 更新于 ${formatDate(note.data.updated)}`}> Updated {formatDate(note.data.updated)}</span> : null}
-        <span data-note-view-count data-zh="0 次点击">0 views</span>
+        {note.data.updated && note.data.updated.getTime() !== note.data.date.getTime()
+          ? <span data-zh={` 更新于 ${formatDate(note.data.updated)}`}> Updated {formatDate(note.data.updated)}</span>
+          : null}
+        {" · "}<span data-note-view-count data-zh="0 次点击">0 views</span>
       </p>
       <ul class="tag-list">
         {note.data.tags.map((tag, index) => <li class="tag" data-zh={zh?.tags?.[index]}>{tag}</li>)}
