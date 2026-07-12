@@ -112,10 +112,12 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
 
 ## Sidebar UI
 
-- Inner pages use a collapsible left sidebar.
+- Inner pages use a collapsible left sidebar (`PortalLayout.astro`).
 - Sidebar state is stored in `localStorage` under `zxt-sidebar-collapsed`.
 - Collapsed desktop state shows a narrow icon/letter navigation column.
 - Mobile layout ignores the collapsed desktop shape and keeps navigation readable.
+- Note detail pages (`notes/[...slug].astro`) have their own left (Contents) + right (On this page) TOC rails, collapsed independently via `data-side-toggle`, persisted under `zxt-note-side-collapsed`.
+- **Collapse animation smoothness**: both the portal sidebar (`.portal-shell`) and the note TOC rails (`.note-layout`) animate `grid-template-columns` with `--dur-slow`/`--ease` + `will-change: grid-template-columns`. Rail track widths MUST be fixed lengths (`--lw`/`--rw` = `220px`/`44px`), never `minmax(...)` — track-size functions can't be interpolated and cause the transition to snap. The `no-left`/`no-right` states are static per-page (a note either has sections or not) and use 2-column templates. Collapsed rail contents (`nav`, `.eyebrow`) fade via `opacity`+`visibility` transitions rather than `display:none` so they don't pop.
 
 ## Deployment
 
