@@ -55,7 +55,8 @@ const links = [
     grid-template-columns: 220px minmax(0, 1fr);
     min-height: 100vh;
     min-width: 0;
-    transition: grid-template-columns 180ms ease;
+    transition: grid-template-columns var(--dur-slow) var(--ease);
+    will-change: grid-template-columns;
   }
 
   .portal-shell.collapsed {
@@ -73,8 +74,8 @@ const links = [
     padding: 24px;
     box-shadow: 1px 0 16px -8px color-mix(in srgb, var(--accent) 50%, transparent);
     transition:
-      padding 180ms ease,
-      background 180ms ease;
+      padding var(--dur-slow) var(--ease),
+      background var(--dur-slow) var(--ease);
   }
 
   .sidebar-head {

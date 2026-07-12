@@ -157,13 +157,14 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
 
 <style>
   .note-layout {
-    --lw: minmax(180px, 220px);
-    --rw: minmax(180px, 220px);
+    --lw: 220px;
+    --rw: 220px;
     display: grid;
     grid-template-columns: var(--lw) minmax(0, 1fr) var(--rw);
     gap: 28px;
     align-items: start;
-    transition: grid-template-columns 180ms ease;
+    transition: grid-template-columns var(--dur-slow) var(--ease);
+    will-change: grid-template-columns;
   }
 
   /* Collapsed side rails shrink to a slim strip so the note gets wider. */
@@ -175,7 +176,7 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
     --rw: 44px;
   }
 
-  /* Missing side rails collapse their track. */
+  /* Missing side rails collapse their track (static per-page states, no animation). */
   .note-layout.no-left {
     grid-template-columns: minmax(0, 1fr) var(--rw);
   }
@@ -328,9 +329,18 @@ const pageTitle = currentSection ? `${currentSection.title} | ${note.data.title}
     overflow: visible;
   }
 
+  .note-side nav,
+  .note-side .eyebrow {
+    transition: opacity var(--dur-slow) var(--ease), visibility var(--dur-slow) var(--ease);
+    opacity: 1;
+    visibility: visible;
+  }
+
   .note-side.collapsed nav,
   .note-side.collapsed .eyebrow {
-    display: none;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
   }
 
   .note-side.collapsed .note-side-head {
