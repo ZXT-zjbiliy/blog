@@ -124,10 +124,13 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
 
 - Homepage has a client-side search bar (`src/components/SearchBar.astro`) placed between the hero and "Featured notes" section.
 - Search covers all three collections: notes, projects (using `stack` as tags), and topics.
-- Build-time inverted index: `src/pages/search-index.json.ts` (`export const prerender = true`) generates `/blog/search-index.json` at build time. It contains `{ entries, tags, tokens }` where `tokens` is a null-prototype object (`Object.create(null)`) mapping token strings to arrays of entry indices — avoids prototype-chain collisions with words like "constructor" in note bodies.
-- Tokeniser: ASCII words ≥ 2 chars + CJK overlapping bigrams (sliding window). Mirrors the same logic in `SearchBar.astro`'s client-side `queryTokens()`.
-- Default mode: real-time substring scan of `title + description + tags` (metadata only). The index JSON is **not** fetched until the user clicks "Full text / 全文".
-- Full-text mode: lazily fetches the index JSON on first use, then intersects tokenised query against the inverted index for all matched entry indices.
+- Build-time index is **split into two prerendered endpoints** (both `export const prerender = true`), sharing build logic in `src/lib/search-build.ts` (`buildEntries()` / `buildTokens()`):
+  - `src/pages/search-index.json.ts` → `/blog/search-index.json`: **lightweight**, `{ entries, tags }` only. Fetched as soon as the dropdown opens (no loading indicator) so the tag marquee appears instantly.
+  - `src/pages/search-tokens.json.ts` → `/blog/search-tokens.json`: **heavy**, `{ tokens }` (the full-text inverted index of all note bodies). Fetched **only** when the user clicks "Full text / 全文". `tokens` is a null-prototype object (`Object.create(null)`) — avoids prototype-chain collisions with words like "constructor" in note bodies.
+- Tokeniser: ASCII words ≥ 2 chars + CJK overlapping bigrams (sliding window). Lives in `search-build.ts` and is mirrored in `SearchBar.astro`'s client-side `queryTokens()`.
+- Default mode: real-time substring scan of `title + description + tags` (metadata only) against the already-loaded lightweight index.
+- Full-text mode: lazily fetches `search-tokens.json` on first click (shows the loading indicator), then intersects tokenised query against the inverted index. Falls back to metadata match if tokens fail to load.
+- The tag panel is a single-row auto-scrolling marquee (`.tag-marquee` / `.tag-track`, two duplicated `<ul>` copies for a seamless loop, pause-on-hover, `prefers-reduced-motion` → manual horizontal scroll). Selected filters render as rounded-rectangle chips (`--radius`) in the search field.
 - Tags in the dropdown come from `index.tags` (unified, deduplicated across all collections). Clicking a tag adds a `chip` filter (`data-search-chips`); chips show `×` to remove.
 - Bilingual: static strings use `data-zh`; dynamic elements (chips, tag pills, result titles/descriptions) always set both `data-en` and `data-zh` so the global `applyLanguage` IIFE picks them up correctly on toggle.
 - DOM hooks: `data-search-wrap`, `data-search-index-url`, `data-search-input`, `data-search-chips`, `data-search-fulltext`, `data-search-dropdown`, `data-search-all-tags`, `data-search-results`.
