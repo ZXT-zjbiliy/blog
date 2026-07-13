@@ -97,6 +97,7 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
   - giscus theme is synced in `Comments.astro` (reads `data-theme`, posts `setConfig` on toggle).
 - Motion: interactive elements transition with the motion tokens; a global `prefers-reduced-motion` guard in `global.css` neutralizes all transitions/animations.
 - Shared page-title styling is global (`.prose > h1`, `.page-head h1`, `.page-head`) — do not re-add per-page `h1` style blocks. The homepage hero `h1` is an intentional scoped exception.
+- Homepage section headings (`.section-heading h2` in `index.astro`, e.g. "Featured notes" / "Projects") are regular block headings at `--font-size-h2` with `--text` colour — not the tiny uppercase mono eyebrow label they used to be. The accent marker bar (`.section-heading h2::before`) is kept and scales with the font via its `0.95em` height.
 - Cards (`.card`) carry `--shadow-sm`; clickable `.content-card` lifts on hover. Keep the required `data-note-card` / `data-note-view-count` attributes intact.
 
 ## Click Counts
@@ -118,6 +119,18 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
 - Mobile layout ignores the collapsed desktop shape and keeps navigation readable.
 - Note detail pages (`notes/[...slug].astro`) have their own left (Contents) + right (On this page) TOC rails, collapsed independently via `data-side-toggle`, persisted under `zxt-note-side-collapsed`.
 - **Collapse animation smoothness**: both the portal sidebar (`.portal-shell`) and the note TOC rails (`.note-layout`) animate `grid-template-columns` with `--dur-slow`/`--ease` + `will-change: grid-template-columns`. Rail track widths MUST be fixed lengths (`--lw`/`--rw` = `220px`/`44px`), never `minmax(...)` — track-size functions can't be interpolated and cause the transition to snap. The `no-left`/`no-right` states are static per-page (a note either has sections or not) and use 2-column templates. Collapsed rail contents (`nav`, `.eyebrow`) fade via `opacity`+`visibility` transitions rather than `display:none` so they don't pop.
+
+## Search
+
+- Homepage has a client-side search bar (`src/components/SearchBar.astro`) placed between the hero and "Featured notes" section.
+- Search covers all three collections: notes, projects (using `stack` as tags), and topics.
+- Build-time inverted index: `src/pages/search-index.json.ts` (`export const prerender = true`) generates `/blog/search-index.json` at build time. It contains `{ entries, tags, tokens }` where `tokens` is a null-prototype object (`Object.create(null)`) mapping token strings to arrays of entry indices — avoids prototype-chain collisions with words like "constructor" in note bodies.
+- Tokeniser: ASCII words ≥ 2 chars + CJK overlapping bigrams (sliding window). Mirrors the same logic in `SearchBar.astro`'s client-side `queryTokens()`.
+- Default mode: real-time substring scan of `title + description + tags` (metadata only). The index JSON is **not** fetched until the user clicks "Full text / 全文".
+- Full-text mode: lazily fetches the index JSON on first use, then intersects tokenised query against the inverted index for all matched entry indices.
+- Tags in the dropdown come from `index.tags` (unified, deduplicated across all collections). Clicking a tag adds a `chip` filter (`data-search-chips`); chips show `×` to remove.
+- Bilingual: static strings use `data-zh`; dynamic elements (chips, tag pills, result titles/descriptions) always set both `data-en` and `data-zh` so the global `applyLanguage` IIFE picks them up correctly on toggle.
+- DOM hooks: `data-search-wrap`, `data-search-index-url`, `data-search-input`, `data-search-chips`, `data-search-fulltext`, `data-search-dropdown`, `data-search-all-tags`, `data-search-results`.
 
 ## Deployment
 
