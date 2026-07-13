@@ -189,21 +189,21 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
   }
 
-  .tag-track {
+  :global(.tag-track) {
     display: flex;
     width: max-content;
     animation: tag-scroll 26s linear infinite;
   }
 
-  .tag-marquee:hover .tag-track {
+  .tag-marquee:hover :global(.tag-track) {
     animation-play-state: paused;
   }
 
-  .tag-track ul {
+  :global(.tag-track ul) {
     display: flex;
     flex-wrap: nowrap;
     gap: 8px;
-    padding: 0 8px 0 0; /* trailing gap so the two copies tile seamlessly */
+    padding: 0 8px 0 0;
     margin: 0;
     list-style: none;
   }
@@ -214,7 +214,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .tag-track {
+    :global(.tag-track) {
       animation: none;
     }
     .tag-marquee {
