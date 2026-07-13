@@ -32,7 +32,7 @@ const { searchIndexUrl } = Astro.props;
   <div class="search-dropdown" data-search-dropdown hidden>
     <div class="search-tag-panel" data-search-tag-panel>
       <p class="search-panel-label" data-zh="按标签筛选">Filter by tag</p>
-      <ul class="tag-list" data-search-all-tags></ul>
+      <div class="tag-marquee" data-search-all-tags></div>
     </div>
     <ul class="search-results" data-search-results hidden></ul>
     <p class="search-empty" data-search-empty hidden data-zh="没有找到结果">No results found</p>
@@ -122,7 +122,7 @@ const { searchIndexUrl } = Astro.props;
     align-items: center;
     gap: 5px;
     border: 1px solid var(--accent);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius);
     background: color-mix(in srgb, var(--accent) 14%, var(--surface));
     color: var(--accent-strong);
     font-size: var(--font-size-sm);
@@ -180,6 +180,49 @@ const { searchIndexUrl } = Astro.props;
     letter-spacing: 0.1em;
     text-transform: uppercase;
   }
+
+  /* Single-row auto-scrolling tag marquee */
+  .tag-marquee {
+    overflow: hidden;
+    mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+    -webkit-mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
+  }
+
+  .tag-track {
+    display: flex;
+    width: max-content;
+    animation: tag-scroll 26s linear infinite;
+  }
+
+  .tag-marquee:hover .tag-track {
+    animation-play-state: paused;
+  }
+
+  .tag-track ul {
+    display: flex;
+    flex-wrap: nowrap;
+    gap: 8px;
+    padding: 0 8px 0 0; /* trailing gap so the two copies tile seamlessly */
+    margin: 0;
+    list-style: none;
+  }
+
+  @keyframes tag-scroll {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tag-track {
+      animation: none;
+    }
+    .tag-marquee {
+      overflow-x: auto;
+      mask-image: none;
+      -webkit-mask-image: none;
+    }
+  }
+
   /* Tag pills in the tag panel are clickable */
   [data-search-all-tags] .tag {
     cursor: pointer;
@@ -344,22 +387,37 @@ const { searchIndexUrl } = Astro.props;
   }
 
   // ── Tag panel ────────────────────────────────────────────────────────────
-  function renderTagPanel() {
-    if (!indexData) return;
-    allTagsEl.innerHTML = "";
-    for (const tag of indexData.tags) {
+  // Build one <ul> of tag pills. The decorative clone (ariaHidden) has no
+  // event listeners and is skipped by assistive tech / keyboard tabbing.
+  function buildTagUl(ariaHidden: boolean): HTMLUListElement {
+    const ul = document.createElement("ul");
+    if (ariaHidden) ul.setAttribute("aria-hidden", "true");
+    for (const tag of indexData!.tags) {
       const li = document.createElement("li");
       li.className = "tag" + (activeTagFilters.includes(tag.en) ? " active-tag" : "");
       li.textContent = localText(tag.en, tag.zh);
       li.dataset.en = tag.en;
       li.dataset.zh = tag.zh;
       li.dataset.tagEn = tag.en;
-      li.setAttribute("role", "button");
-      li.setAttribute("tabindex", "0");
-      li.addEventListener("click", () => toggleTag(tag.en, tag.zh));
-      li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTag(tag.en, tag.zh); }});
-      allTagsEl.appendChild(li);
+      if (!ariaHidden) {
+        li.setAttribute("role", "button");
+        li.setAttribute("tabindex", "0");
+        li.addEventListener("click", () => toggleTag(tag.en, tag.zh));
+        li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTag(tag.en, tag.zh); }});
+      }
+      ul.appendChild(li);
     }
+    return ul;
+  }
+
+  function renderTagPanel() {
+    if (!indexData) return;
+    allTagsEl.innerHTML = "";
+    const track = document.createElement("div");
+    track.className = "tag-track";
+    track.appendChild(buildTagUl(false)); // interactive copy
+    track.appendChild(buildTagUl(true));  // decorative copy for seamless loop
+    allTagsEl.appendChild(track);
   }
 
   function toggleTag(en: string, zh: string) {
