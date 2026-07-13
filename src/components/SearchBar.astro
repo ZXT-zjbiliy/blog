@@ -1,0 +1,624 @@
+---
+interface Props {
+  searchIndexUrl: string;
+}
+
+const { searchIndexUrl } = Astro.props;
+---
+
+<div class="search-wrap" data-search-wrap data-search-index-url={searchIndexUrl}>
+  <div class="search-field" data-search-field>
+    <span class="search-icon" aria-hidden="true">⌕</span>
+    <div class="chip-row" data-search-chips></div>
+    <input
+      class="search-input"
+      type="search"
+      data-search-input
+      placeholder="Search notes, projects, topics…"
+      data-placeholder-zh="搜索笔记、项目、主题……"
+      autocomplete="off"
+      aria-label="Search site content"
+    />
+    <button
+      class="search-fulltext-btn"
+      type="button"
+      data-search-fulltext
+      aria-pressed="false"
+      data-zh="全文"
+      title="Search inside note content"
+    >Full text</button>
+  </div>
+
+  <div class="search-dropdown" data-search-dropdown hidden>
+    <div class="search-tag-panel" data-search-tag-panel>
+      <p class="search-panel-label" data-zh="按标签筛选">Filter by tag</p>
+      <ul class="tag-list" data-search-all-tags></ul>
+    </div>
+    <ul class="search-results" data-search-results hidden></ul>
+    <p class="search-empty" data-search-empty hidden data-zh="没有找到结果">No results found</p>
+    <p class="search-loading" data-search-loading hidden data-zh="正在加载全文索引…">Loading full-text index…</p>
+  </div>
+</div>
+
+<style>
+  .search-wrap {
+    position: relative;
+    margin: var(--space-6) 0 var(--space-4);
+  }
+
+  .search-field {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px;
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    background: var(--surface);
+    padding: 8px 10px;
+    transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  }
+
+  .search-field:focus-within {
+    border-color: var(--accent);
+    box-shadow: var(--glow-soft);
+  }
+
+  .search-icon {
+    color: var(--accent-strong);
+    font-size: 1.15rem;
+    line-height: 1;
+  }
+
+  .chip-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip-row:empty {
+    display: none;
+  }
+
+  .search-input {
+    flex: 1 1 180px;
+    min-width: 120px;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    font: inherit;
+    font-size: var(--font-size-body);
+    padding: 4px 2px;
+    outline: none;
+  }
+
+  .search-fulltext-btn {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--surface-muted);
+    color: var(--accent-strong);
+    cursor: pointer;
+    font: inherit;
+    font-size: var(--font-size-sm);
+    font-weight: 700;
+    padding: 5px 12px;
+    transition: background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+
+  .search-fulltext-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .search-fulltext-btn[aria-pressed="true"] {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: white;
+    box-shadow: var(--glow-soft);
+  }
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    border: 1px solid var(--accent);
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    color: var(--accent-strong);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    padding: 3px 4px 3px 10px;
+  }
+
+  .chip button {
+    display: inline-grid;
+    place-items: center;
+    width: 18px;
+    height: 18px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: color-mix(in srgb, var(--accent) 25%, transparent);
+    color: var(--accent-strong);
+    cursor: pointer;
+    font: inherit;
+    font-size: 0.85rem;
+    line-height: 1;
+    transition: background var(--dur-fast) var(--ease);
+  }
+
+  .chip button:hover {
+    background: var(--accent);
+    color: white;
+  }
+
+  .search-dropdown {
+    position: absolute;
+    top: calc(100% + 6px);
+    left: 0;
+    right: 0;
+    z-index: 100;
+    border: 1px solid var(--line);
+    border-top: 2px solid var(--accent);
+    border-radius: var(--radius);
+    background: var(--surface);
+    box-shadow: var(--shadow-md);
+    padding: 14px;
+    max-height: min(60vh, 460px);
+    overflow-y: auto;
+  }
+
+  .search-dropdown[hidden] {
+    display: none;
+  }
+
+  .search-panel-label {
+    margin: 0 0 8px;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  /* Tag pills in the tag panel are clickable */
+  [data-search-all-tags] .tag {
+    cursor: pointer;
+    transition: background var(--dur-fast) var(--ease),
+      border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+
+  [data-search-all-tags] .tag:hover {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 12%, var(--surface-muted));
+    color: var(--accent);
+  }
+
+  [data-search-all-tags] .tag.active-tag {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 18%, var(--surface-muted));
+    color: var(--accent-strong);
+    font-weight: 700;
+  }
+
+  /* Results list */
+  .search-results {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .search-results[hidden] { display: none; }
+
+  .search-results li a {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    border-left: 2px solid transparent;
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 9px 10px;
+    color: inherit;
+    text-decoration: none;
+    transition: background var(--dur-fast) var(--ease),
+      border-left-color var(--dur-fast) var(--ease);
+  }
+
+  .search-results li a:hover,
+  .search-results li a:focus {
+    border-left-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+  }
+
+  .result-badge {
+    flex: 0 0 auto;
+    border: 1px solid var(--line);
+    border-radius: var(--radius-pill);
+    background: var(--surface-muted);
+    color: var(--accent-strong);
+    font-family: var(--font-mono);
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    padding: 2px 6px;
+    margin-top: 3px;
+    text-transform: uppercase;
+  }
+
+  .result-body {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .result-title {
+    display: block;
+    color: var(--text);
+    font-weight: 700;
+    font-size: var(--font-size-body);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .result-desc {
+    display: block;
+    color: var(--muted);
+    font-size: var(--font-size-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-top: 2px;
+  }
+
+  .search-empty,
+  .search-loading {
+    margin: 8px 0 0;
+    color: var(--muted);
+    font-size: var(--font-size-sm);
+  }
+
+  .search-empty[hidden],
+  .search-loading[hidden] { display: none; }
+</style>
+<script>
+(() => {
+  // ── Types ────────────────────────────────────────────────────────────────
+  interface SearchEntry {
+    id: string;
+    type: "note" | "project" | "topic";
+    title: string;
+    titleZh?: string;
+    description: string;
+    descriptionZh?: string;
+    url: string;
+    tags: string[];
+    tagsZh: string[];
+    category?: string;
+    date: string;
+  }
+  interface SearchIndex {
+    entries: SearchEntry[];
+    tags: { en: string; zh: string }[];
+    tokens: Record<string, number[]>;
+  }
+
+  // ── DOM refs ─────────────────────────────────────────────────────────────
+  const wrap = document.querySelector<HTMLElement>("[data-search-wrap]");
+  if (!wrap) return;
+
+  const indexUrl = wrap.dataset.searchIndexUrl ?? "";
+  const inputEl = wrap.querySelector<HTMLInputElement>("[data-search-input]")!;
+  const chipsEl = wrap.querySelector<HTMLElement>("[data-search-chips]")!;
+  const fulltextBtn = wrap.querySelector<HTMLButtonElement>("[data-search-fulltext]")!;
+  const dropdownEl = wrap.querySelector<HTMLElement>("[data-search-dropdown]")!;
+  const tagPanelEl = wrap.querySelector<HTMLElement>("[data-search-tag-panel]")!;
+  const allTagsEl = wrap.querySelector<HTMLElement>("[data-search-all-tags]")!;
+  const resultsEl = wrap.querySelector<HTMLElement>("[data-search-results]")!;
+  const emptyEl = wrap.querySelector<HTMLElement>("[data-search-empty]")!;
+  const loadingEl = wrap.querySelector<HTMLElement>("[data-search-loading]")!;
+
+  // ── State ────────────────────────────────────────────────────────────────
+  let indexData: SearchIndex | null = null;
+  let indexLoading = false;
+  let activeQuery = "";
+  let activeTagFilters: string[] = [];  // English tag/stack values
+  let fulltextMode = false;
+
+  // ── Language helper ──────────────────────────────────────────────────────
+  function isZh(): boolean {
+    return document.documentElement.dataset.lang === "zh";
+  }
+
+  function localText(en: string, zh?: string): string {
+    return isZh() && zh ? zh : en;
+  }
+
+  // ── Dropdown open / close ────────────────────────────────────────────────
+  function openDropdown() {
+    dropdownEl.hidden = false;
+    refreshDropdownContent();
+  }
+
+  function closeDropdown() {
+    dropdownEl.hidden = true;
+  }
+
+  // ── Tag panel ────────────────────────────────────────────────────────────
+  function renderTagPanel() {
+    if (!indexData) return;
+    allTagsEl.innerHTML = "";
+    for (const tag of indexData.tags) {
+      const li = document.createElement("li");
+      li.className = "tag" + (activeTagFilters.includes(tag.en) ? " active-tag" : "");
+      li.textContent = localText(tag.en, tag.zh);
+      li.dataset.en = tag.en;
+      li.dataset.zh = tag.zh;
+      li.dataset.tagEn = tag.en;
+      li.setAttribute("role", "button");
+      li.setAttribute("tabindex", "0");
+      li.addEventListener("click", () => toggleTag(tag.en, tag.zh));
+      li.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleTag(tag.en, tag.zh); }});
+      allTagsEl.appendChild(li);
+    }
+  }
+
+  function toggleTag(en: string, zh: string) {
+    if (activeTagFilters.includes(en)) {
+      removeTagFilter(en);
+    } else {
+      addTagFilter(en, zh);
+    }
+  }
+
+  // ── Chips ────────────────────────────────────────────────────────────────
+  function addTagFilter(en: string, zh: string) {
+    if (activeTagFilters.includes(en)) return;
+    activeTagFilters.push(en);
+    renderChips();
+    search();
+    // Update tag pill state
+    allTagsEl.querySelectorAll<HTMLElement>("[data-tag-en]").forEach((el) => {
+      el.classList.toggle("active-tag", el.dataset.tagEn === en || activeTagFilters.includes(el.dataset.tagEn ?? ""));
+    });
+  }
+
+  function removeTagFilter(en: string) {
+    activeTagFilters = activeTagFilters.filter((t) => t !== en);
+    renderChips();
+    search();
+    allTagsEl.querySelectorAll<HTMLElement>("[data-tag-en]").forEach((el) => {
+      el.classList.toggle("active-tag", activeTagFilters.includes(el.dataset.tagEn ?? ""));
+    });
+  }
+
+  function renderChips() {
+    chipsEl.innerHTML = "";
+    for (const en of activeTagFilters) {
+      const zh = indexData?.tags.find((t) => t.en === en)?.zh ?? en;
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.dataset.tag = en;
+
+      const label = document.createElement("span");
+      label.textContent = localText(en, zh);
+      label.dataset.en = en;
+      label.dataset.zh = zh;
+
+      const removeBtn = document.createElement("button");
+      removeBtn.type = "button";
+      removeBtn.textContent = "×";
+      removeBtn.setAttribute("aria-label", `Remove filter: ${en}`);
+      removeBtn.addEventListener("click", (e) => { e.stopPropagation(); removeTagFilter(en); });
+
+      chip.appendChild(label);
+      chip.appendChild(removeBtn);
+      chipsEl.appendChild(chip);
+    }
+  }
+
+  // ── Results ───────────────────────────────────────────────────────────────
+  function renderResults(matched: SearchEntry[]) {
+    resultsEl.innerHTML = "";
+    if (matched.length === 0) {
+      resultsEl.hidden = true;
+      emptyEl.hidden = false;
+      return;
+    }
+    emptyEl.hidden = true;
+    resultsEl.hidden = false;
+
+    for (const entry of matched.slice(0, 20)) {
+      const li = document.createElement("li");
+      const a = document.createElement("a");
+      a.href = entry.url;
+
+      const badge = document.createElement("span");
+      badge.className = "result-badge";
+      badge.textContent = entry.type.toUpperCase();
+
+      const body = document.createElement("span");
+      body.className = "result-body";
+
+      const titleSpan = document.createElement("span");
+      titleSpan.className = "result-title";
+      titleSpan.textContent = localText(entry.title, entry.titleZh);
+      if (entry.titleZh) {
+        titleSpan.dataset.en = entry.title;
+        titleSpan.dataset.zh = entry.titleZh;
+      }
+
+      const descSpan = document.createElement("span");
+      descSpan.className = "result-desc";
+      descSpan.textContent = localText(entry.description, entry.descriptionZh);
+      if (entry.descriptionZh) {
+        descSpan.dataset.en = entry.description;
+        descSpan.dataset.zh = entry.descriptionZh;
+      }
+
+      body.appendChild(titleSpan);
+      body.appendChild(descSpan);
+      a.appendChild(badge);
+      a.appendChild(body);
+      li.appendChild(a);
+      resultsEl.appendChild(li);
+    }
+  }
+
+  // ── Search logic ──────────────────────────────────────────────────────────
+  function metadataMatch(entry: SearchEntry, q: string): boolean {
+    if (!q) return true;
+    const haystack = [
+      entry.title, entry.titleZh ?? "",
+      entry.description, entry.descriptionZh ?? "",
+      entry.tags.join(" "), entry.tagsZh.join(" "),
+      entry.category ?? ""
+    ].join(" ").toLowerCase();
+    return haystack.includes(q.toLowerCase());
+  }
+
+  // Mirror the build-time tokeniser: ASCII words (≥2 chars) + CJK bigrams.
+  const CJK_RE = /[㐀-鿿぀-ヿ가-힯豈-﫿]/;
+
+  function queryTokens(q: string): string[] {
+    const result = new Set<string>();
+    const raw = q.toLowerCase().split(/[\s\t\n\r!"#%&'()*+,\-./:;<=>?@[\\\]^_`{|}~。，、；：？！…—《》「」【】　]+/);
+    for (const word of raw) {
+      if (!word) continue;
+      if (CJK_RE.test(word)) {
+        const chars = [...word];
+        if (chars.length === 1) {
+          result.add(chars[0]);
+          continue;
+        }
+        for (let i = 0; i < chars.length - 1; i++) {
+          if (CJK_RE.test(chars[i]) && CJK_RE.test(chars[i + 1])) {
+            result.add(chars[i] + chars[i + 1]);
+          }
+        }
+      } else if (word.length >= 2) {
+        result.add(word);
+      }
+    }
+    return [...result];
+  }
+
+  function fulltextMatch(entry: SearchEntry, q: string, entryIdx: number): boolean {
+    if (!q.trim() || !indexData) return true;
+    const tokens = queryTokens(q);
+    // No indexable tokens (e.g. a single ASCII char) → fall back to metadata.
+    if (tokens.length === 0) return metadataMatch(entry, q);
+    if (entryIdx === -1) return false;
+    return tokens.every((tok) => {
+      const hits = indexData!.tokens[tok];
+      return hits ? hits.includes(entryIdx) : false;
+    });
+  }
+
+  function tagMatch(entry: SearchEntry): boolean {
+    if (activeTagFilters.length === 0) return true;
+    return activeTagFilters.every((t) => entry.tags.includes(t));
+  }
+
+  function search() {
+    // Index loads on first dropdown open; nothing to search until then.
+    if (!indexData) return;
+
+    const q = activeQuery.trim();
+    const hasQuery = q.length > 0;
+    const hasTags = activeTagFilters.length > 0;
+
+    // Show tag panel only when nothing is typed and no tags active
+    tagPanelEl.hidden = hasQuery || hasTags;
+
+    if (!hasQuery && !hasTags) {
+      resultsEl.hidden = true;
+      emptyEl.hidden = true;
+      tagPanelEl.hidden = false;
+      return;
+    }
+
+    let candidates = indexData.entries;
+
+    // Tag filter first (cheap)
+    if (hasTags) {
+      candidates = candidates.filter(tagMatch);
+    }
+
+    // Text filter
+    if (hasQuery) {
+      if (fulltextMode) {
+        candidates = candidates.filter((e) => fulltextMatch(e, q, indexData!.entries.indexOf(e)));
+      } else {
+        candidates = candidates.filter((e) => metadataMatch(e, q));
+      }
+    }
+
+    renderResults(candidates);
+  }
+
+  // ── Fetch index ────────────────────────────────────────────────────────────
+  async function fetchIndex(): Promise<void> {
+    if (indexData || indexLoading) return;
+    indexLoading = true;
+    loadingEl.hidden = false;
+    try {
+      const res = await fetch(indexUrl);
+      indexData = await res.json() as SearchIndex;
+      renderTagPanel();
+    } catch {
+      // Silently fail — fulltext just won't work
+    } finally {
+      indexLoading = false;
+      loadingEl.hidden = true;
+    }
+  }
+
+  // ── Dropdown content refresh ──────────────────────────────────────────────
+  function refreshDropdownContent() {
+    if (!indexData) {
+      // Load index eagerly on first open
+      fetchIndex().then(() => {
+        search();
+        renderTagPanel();
+      });
+      return;
+    }
+    search();
+    if (!activeQuery && activeTagFilters.length === 0) {
+      renderTagPanel();
+    }
+  }
+
+  // ── Events ────────────────────────────────────────────────────────────────
+  inputEl.addEventListener("focus", () => openDropdown());
+
+  inputEl.addEventListener("input", () => {
+    activeQuery = inputEl.value;
+    openDropdown();
+    search();
+  });
+
+  fulltextBtn.addEventListener("click", async () => {
+    fulltextMode = !fulltextMode;
+    fulltextBtn.setAttribute("aria-pressed", String(fulltextMode));
+    if (fulltextMode && !indexData) {
+      await fetchIndex();
+    }
+    search();
+    openDropdown();
+  });
+
+  // Close on outside click
+  document.addEventListener("click", (e) => {
+    if (!wrap.contains(e.target as Node)) closeDropdown();
+  });
+
+  // Close on Escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape") {
+      closeDropdown();
+      inputEl.blur();
+    }
+  });
+})();
+</script>

@@ -3,6 +3,7 @@ import { getCollection } from "astro:content";
 import SiteHeader from "@components/SiteHeader.astro";
 import ContentCard from "@components/ContentCard.astro";
 import IdentityMark from "@components/IdentityMark.astro";
+import SearchBar from "@components/SearchBar.astro";
 import BaseLayout from "@layouts/BaseLayout.astro";
 import { entryZh } from "@lib/i18n";
 import { noteEntryPath } from "@lib/note-sections";
@@ -47,6 +48,8 @@ const recentUpdates = notes.slice(0, 3);
           </ul>
         </div>
       </section>
+
+      <SearchBar searchIndexUrl={sitePath('/search-index.json')} />
 
       <section class="section">
         <div class="section-heading">
@@ -197,13 +200,10 @@ const recentUpdates = notes.slice(0, 3);
     align-items: center;
     gap: 9px;
     margin: 0;
-    color: var(--accent);
-    font-family: var(--font-mono);
-    font-size: var(--font-size-xs);
+    color: var(--text);
+    font-size: var(--font-size-h2);
     font-weight: 700;
-    letter-spacing: 0.14em;
     line-height: var(--line-heading);
-    text-transform: uppercase;
   }
 
   .section-heading h2::before {

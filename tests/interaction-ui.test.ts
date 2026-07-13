@@ -33,4 +33,30 @@ describe("interactive site chrome", () => {
     expect(homepage).toContain("data-sort-notes-by-views");
     expect(notePage).toContain("data-note-view-root");
   });
+
+  it("has a homepage search bar with required DOM hooks and bilingual attributes", () => {
+    const search = read("src/components/SearchBar.astro");
+    const homepage = read("src/pages/index.astro");
+
+    expect(search).toContain("data-search-wrap");
+    expect(search).toContain("data-search-index-url");
+    expect(search).toContain("data-search-input");
+    expect(search).toContain("data-search-chips");
+    expect(search).toContain("data-search-fulltext");
+    expect(search).toContain("data-search-dropdown");
+    expect(search).toContain("data-search-all-tags");
+    expect(search).toContain("data-search-results");
+    expect(search).toContain("data-placeholder-zh");
+
+    expect(homepage).toContain("<SearchBar");
+    expect(homepage).toContain("searchIndexUrl");
+  });
+
+  it("builds a prerendered search index endpoint", () => {
+    const endpoint = read("src/pages/search-index.json.ts");
+
+    expect(endpoint).toContain("export const prerender = true");
+    expect(endpoint).toContain("export async function GET");
+    expect(endpoint).toContain("tokens");
+  });
 });
