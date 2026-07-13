@@ -1,12 +1,13 @@
 ---
 interface Props {
   searchIndexUrl: string;
+  tokensUrl: string;
 }
 
-const { searchIndexUrl } = Astro.props;
+const { searchIndexUrl, tokensUrl } = Astro.props;
 ---
 
-<div class="search-wrap" data-search-wrap data-search-index-url={searchIndexUrl}>
+<div class="search-wrap" data-search-wrap data-search-index-url={searchIndexUrl} data-search-tokens-url={tokensUrl}>
   <div class="search-field" data-search-field>
     <span class="search-icon" aria-hidden="true">⌕</span>
     <div class="chip-row" data-search-chips></div>
@@ -339,9 +340,13 @@ const { searchIndexUrl } = Astro.props;
     category?: string;
     date: string;
   }
+  // Lightweight index (loaded on first dropdown open)
   interface SearchIndex {
     entries: SearchEntry[];
     tags: { en: string; zh: string }[];
+  }
+  // Heavy tokens index (loaded only when user clicks "Full text")
+  interface TokensIndex {
     tokens: Record<string, number[]>;
   }
 
@@ -350,6 +355,7 @@ const { searchIndexUrl } = Astro.props;
   if (!wrap) return;
 
   const indexUrl = wrap.dataset.searchIndexUrl ?? "";
+  const tokensUrl = wrap.dataset.searchTokensUrl ?? "";
   const inputEl = wrap.querySelector<HTMLInputElement>("[data-search-input]")!;
   const chipsEl = wrap.querySelector<HTMLElement>("[data-search-chips]")!;
   const fulltextBtn = wrap.querySelector<HTMLButtonElement>("[data-search-fulltext]")!;
@@ -361,8 +367,10 @@ const { searchIndexUrl } = Astro.props;
   const loadingEl = wrap.querySelector<HTMLElement>("[data-search-loading]")!;
 
   // ── State ────────────────────────────────────────────────────────────────
-  let indexData: SearchIndex | null = null;
+  let indexData: SearchIndex | null = null;   // lightweight — loaded on first open
+  let tokensData: TokensIndex | null = null;  // heavy — loaded only on fulltext click
   let indexLoading = false;
+  let tokensLoading = false;
   let activeQuery = "";
   let activeTagFilters: string[] = [];  // English tag/stack values
   let fulltextMode = false;
@@ -424,12 +432,12 @@ const { searchIndexUrl } = Astro.props;
     if (activeTagFilters.includes(en)) {
       removeTagFilter(en);
     } else {
-      addTagFilter(en, zh);
+      addTagFilter(en);
     }
   }
 
   // ── Chips ────────────────────────────────────────────────────────────────
-  function addTagFilter(en: string, zh: string) {
+  function addTagFilter(en: string) {
     if (activeTagFilters.includes(en)) return;
     activeTagFilters.push(en);
     renderChips();
@@ -561,13 +569,12 @@ const { searchIndexUrl } = Astro.props;
   }
 
   function fulltextMatch(entry: SearchEntry, q: string, entryIdx: number): boolean {
-    if (!q.trim() || !indexData) return true;
+    if (!q.trim() || !tokensData) return true;
     const tokens = queryTokens(q);
-    // No indexable tokens (e.g. a single ASCII char) → fall back to metadata.
     if (tokens.length === 0) return metadataMatch(entry, q);
     if (entryIdx === -1) return false;
     return tokens.every((tok) => {
-      const hits = indexData!.tokens[tok];
+      const hits = tokensData!.tokens[tok];
       return hits ? hits.includes(entryIdx) : false;
     });
   }
@@ -602,9 +609,10 @@ const { searchIndexUrl } = Astro.props;
       candidates = candidates.filter(tagMatch);
     }
 
-    // Text filter
+    // Text filter — fulltext only if the tokens index actually loaded,
+    // otherwise fall back to metadata match so results aren't all-or-nothing.
     if (hasQuery) {
-      if (fulltextMode) {
+      if (fulltextMode && tokensData) {
         candidates = candidates.filter((e) => fulltextMatch(e, q, indexData!.entries.indexOf(e)));
       } else {
         candidates = candidates.filter((e) => metadataMatch(e, q));
@@ -614,19 +622,33 @@ const { searchIndexUrl } = Astro.props;
     renderResults(candidates);
   }
 
-  // ── Fetch index ────────────────────────────────────────────────────────────
+  // ── Fetch lightweight index (entries + tags) ─────────────────────────────
   async function fetchIndex(): Promise<void> {
     if (indexData || indexLoading) return;
     indexLoading = true;
-    loadingEl.hidden = false;
     try {
       const res = await fetch(indexUrl);
       indexData = await res.json() as SearchIndex;
       renderTagPanel();
     } catch {
-      // Silently fail — fulltext just won't work
+      // Silently fail — search degrades gracefully
     } finally {
       indexLoading = false;
+    }
+  }
+
+  // ── Fetch heavy tokens index (only on "Full text" click) ─────────────────
+  async function fetchTokens(): Promise<void> {
+    if (tokensData || tokensLoading) return;
+    tokensLoading = true;
+    loadingEl.hidden = false;
+    try {
+      const res = await fetch(tokensUrl);
+      tokensData = await res.json() as TokensIndex;
+    } catch {
+      // Silently fail — fulltext search won't work but metadata search still does
+    } finally {
+      tokensLoading = false;
       loadingEl.hidden = true;
     }
   }
@@ -634,7 +656,7 @@ const { searchIndexUrl } = Astro.props;
   // ── Dropdown content refresh ──────────────────────────────────────────────
   function refreshDropdownContent() {
     if (!indexData) {
-      // Load index eagerly on first open
+      // Load lightweight index on first open (no loading indicator — should be fast)
       fetchIndex().then(() => {
         search();
         renderTagPanel();
@@ -659,8 +681,8 @@ const { searchIndexUrl } = Astro.props;
   fulltextBtn.addEventListener("click", async () => {
     fulltextMode = !fulltextMode;
     fulltextBtn.setAttribute("aria-pressed", String(fulltextMode));
-    if (fulltextMode && !indexData) {
-      await fetchIndex();
+    if (fulltextMode && !tokensData) {
+      await fetchTokens();  // Only now do we show the loading indicator + fetch
     }
     search();
     openDropdown();

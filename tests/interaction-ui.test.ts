@@ -54,9 +54,11 @@ describe("interactive site chrome", () => {
 
   it("builds a prerendered search index endpoint", () => {
     const endpoint = read("src/pages/search-index.json.ts");
+    const tokens = read("src/pages/search-tokens.json.ts");
 
     expect(endpoint).toContain("export const prerender = true");
     expect(endpoint).toContain("export async function GET");
-    expect(endpoint).toContain("tokens");
+    expect(tokens).toContain("tokens");
+    expect(tokens).toContain("export const prerender = true");
   });
 });
