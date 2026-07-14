@@ -133,7 +133,28 @@ export async function buildEntries(): Promise<{ entries: SearchEntry[]; tags: { 
   return { entries, tags };
 }
 
-export async function buildTokens(entries: SearchEntry[]): Promise<Record<string, number[]>> {
+// Strip markdown syntax down to readable plain text (for snippet extraction).
+export function stripMarkdown(md: string): string {
+  return md
+    .replace(/```[\s\S]*?```/g, " ")          // fenced code blocks
+    .replace(/`([^`]+)`/g, "$1")               // inline code
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")     // images
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, "$1")   // links → keep text
+    .replace(/<[^>]+>/g, " ")                  // html tags
+    .replace(/^\s{0,3}#{1,6}\s+/gm, "")        // headings
+    .replace(/^\s{0,3}>\s?/gm, "")             // blockquotes
+    .replace(/^\s{0,3}[-*+]\s+/gm, "")         // list bullets
+    .replace(/[*_~]/g, "")                     // emphasis marks
+    .replace(/\s+/g, " ")                      // collapse whitespace
+    .trim();
+}
+
+export interface TokensResult {
+  tokens: Record<string, number[]>;
+  texts: string[];
+}
+
+export async function buildTokens(entries: SearchEntry[]): Promise<TokensResult> {
   const [allNotes] = await Promise.all([getCollection("notes")]);
   const notes = visibleEntries(allNotes);
 
@@ -159,20 +180,26 @@ export async function buildTokens(entries: SearchEntry[]): Promise<Record<string
     if (entry.category) addTokens(idx, entry.category);
   });
 
+  // Plain-text body per entry (aligned with entries[] index), for snippets.
+  // Only notes have a body; projects/topics stay empty (their description shows).
+  const texts: string[] = entries.map(() => "");
+
   // Index note bodies (the expensive full-text part)
   for (const note of notes) {
     const idx = entries.findIndex((e) => e.type === "note" && e.id === note.id);
     if (idx === -1) continue;
-    const sections = getNoteSections(note.body ?? "");
+    const body = note.body ?? "";
+    const sections = getNoteSections(body);
     if (sections.length > 0) {
       for (const section of sections) {
         addTokens(idx, section.title);
         addTokens(idx, section.content);
       }
     } else {
-      addTokens(idx, note.body ?? "");
+      addTokens(idx, body);
     }
+    texts[idx] = stripMarkdown(body);
   }
 
-  return tokens;
+  return { tokens, texts };
 }

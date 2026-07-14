@@ -128,28 +128,25 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     color: var(--accent-strong);
     font-size: var(--font-size-sm);
     font-weight: 600;
-    padding: 3px 4px 3px 10px;
+    padding: 3px 8px;
   }
 
   .chip button {
-    display: inline-grid;
-    place-items: center;
-    width: 18px;
-    height: 18px;
+    display: inline-flex;
+    align-items: center;
     border: 0;
-    border-radius: var(--radius-pill);
-    background: color-mix(in srgb, var(--accent) 25%, transparent);
-    color: var(--accent-strong);
+    background: transparent;
+    color: color-mix(in srgb, var(--accent-strong) 70%, transparent);
     cursor: pointer;
     font: inherit;
-    font-size: 0.85rem;
+    font-size: 1rem;
     line-height: 1;
-    transition: background var(--dur-fast) var(--ease);
+    padding: 0 1px;
+    transition: color var(--dur-fast) var(--ease);
   }
 
   .chip button:hover {
-    background: var(--accent);
-    color: white;
+    color: var(--accent);
   }
 
   .search-dropdown {
@@ -286,7 +283,38 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     letter-spacing: 0.08em;
     padding: 2px 6px;
     margin-top: 3px;
+    margin-right: 2px;
     text-transform: uppercase;
+  }
+
+  /* TOPIC results stand out: filled badge + accent left rail + tinted row */
+  .result-badge.topic-badge {
+    border-color: var(--accent);
+    background: var(--accent);
+    color: #fff;
+  }
+
+  .result-item.topic a {
+    border-left-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 8%, var(--surface));
+  }
+
+  .result-snippet {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: var(--font-size-sm);
+    line-height: 1.4;
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  :global(.search-results mark) {
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    color: inherit;
+    border-radius: 3px;
+    padding: 0 1px;
   }
 
   .result-body {
@@ -348,6 +376,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   // Heavy tokens index (loaded only when user clicks "Full text")
   interface TokensIndex {
     tokens: Record<string, number[]>;
+    texts: string[];  // plain-text note bodies, aligned with entries[] index
   }
 
   // ── DOM refs ─────────────────────────────────────────────────────────────
@@ -382,6 +411,42 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
 
   function localText(en: string, zh?: string): string {
     return isZh() && zh ? zh : en;
+  }
+
+  // ── Highlight & snippet helpers ──────────────────────────────────────────
+  function escapeHtml(s: string): string {
+    return s.replace(/[&<>"]/g, (c) =>
+      c === "&" ? "&amp;" : c === "<" ? "&lt;" : c === ">" ? "&gt;" : "&quot;");
+  }
+
+  function escapeRegExp(s: string): string {
+    return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  }
+
+  // Escape text, then wrap query matches (full string + each word) in <mark>.
+  function highlight(text: string, q: string): string {
+    const escaped = escapeHtml(text);
+    const terms = [q.trim(), ...q.trim().split(/\s+/)]
+      .filter((t) => t.length >= 1)
+      .map(escapeRegExp);
+    if (terms.length === 0) return escaped;
+    const re = new RegExp(`(${[...new Set(terms)].join("|")})`, "gi");
+    return escaped.replace(re, "<mark>$1</mark>");
+  }
+
+  // Extract a ~40-char window around the first query hit in the plain body.
+  function makeSnippet(text: string, q: string): string {
+    if (!text) return "";
+    const needle = q.trim().split(/\s+/)[0] ?? q.trim();
+    if (!needle) return "";
+    const pos = text.toLowerCase().indexOf(needle.toLowerCase());
+    if (pos === -1) return "";
+    const start = Math.max(0, pos - 40);
+    const end = Math.min(text.length, pos + needle.length + 40);
+    let snippet = text.slice(start, end);
+    if (start > 0) snippet = "…" + snippet;
+    if (end < text.length) snippet = snippet + "…";
+    return highlight(snippet, q);
   }
 
   // ── Dropdown open / close ────────────────────────────────────────────────
@@ -493,29 +558,33 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     emptyEl.hidden = true;
     resultsEl.hidden = false;
 
+    const q = activeQuery.trim();
     for (const entry of matched.slice(0, 20)) {
       const li = document.createElement("li");
+      li.className = "result-item " + entry.type;
       const a = document.createElement("a");
       a.href = entry.url;
 
       const badge = document.createElement("span");
-      badge.className = "result-badge";
+      badge.className = "result-badge" + (entry.type === "topic" ? " topic-badge" : "");
       badge.textContent = entry.type.toUpperCase();
 
       const body = document.createElement("span");
       body.className = "result-body";
 
+      const titleText = localText(entry.title, entry.titleZh);
       const titleSpan = document.createElement("span");
       titleSpan.className = "result-title";
-      titleSpan.textContent = localText(entry.title, entry.titleZh);
+      titleSpan.innerHTML = q ? highlight(titleText, q) : escapeHtml(titleText);
       if (entry.titleZh) {
         titleSpan.dataset.en = entry.title;
         titleSpan.dataset.zh = entry.titleZh;
       }
 
+      const descText = localText(entry.description, entry.descriptionZh);
       const descSpan = document.createElement("span");
       descSpan.className = "result-desc";
-      descSpan.textContent = localText(entry.description, entry.descriptionZh);
+      descSpan.innerHTML = q ? highlight(descText, q) : escapeHtml(descText);
       if (entry.descriptionZh) {
         descSpan.dataset.en = entry.description;
         descSpan.dataset.zh = entry.descriptionZh;
@@ -523,6 +592,19 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
 
       body.appendChild(titleSpan);
       body.appendChild(descSpan);
+
+      // Full-text mode: show a highlighted body snippet around the first hit.
+      if (fulltextMode && tokensData && q) {
+        const idx = indexData!.entries.indexOf(entry);
+        const snippetHtml = idx >= 0 ? makeSnippet(tokensData.texts[idx] ?? "", q) : "";
+        if (snippetHtml) {
+          const snip = document.createElement("span");
+          snip.className = "result-snippet";
+          snip.innerHTML = snippetHtml;
+          body.appendChild(snip);
+        }
+      }
+
       a.appendChild(badge);
       a.appendChild(body);
       li.appendChild(a);

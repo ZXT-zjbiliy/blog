@@ -6,9 +6,9 @@ export const prerender = true;
 // Only fetched when the user clicks "Full text / 全文" in the search bar.
 export async function GET() {
   const { entries } = await buildEntries();
-  const tokens = await buildTokens(entries);
+  const { tokens, texts } = await buildTokens(entries);
 
-  return new Response(JSON.stringify({ tokens }), {
+  return new Response(JSON.stringify({ tokens, texts }), {
     headers: { "Content-Type": "application/json; charset=utf-8" }
   });
 }
