@@ -104,6 +104,12 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     outline: none;
   }
 
+  /* Hide the browser's native type="search" clear button — we render our own. */
+  .search-input::-webkit-search-cancel-button {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
   .search-clear {
     flex: 0 0 auto;
     display: inline-grid;
