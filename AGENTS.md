@@ -108,7 +108,7 @@ Imported local images are served from `public/obsidian-assets/`. Markdown image 
 - On every page load, `fetchNoteViews()` in `BaseLayout.astro` fetches all counts and feeds them to `updateNoteViewDisplays()` and `sortNoteCardsByViews()`.
 - On note detail pages, `incrementCurrentNoteView()` fires a POST to `/increment` (fire-and-forget). Deduplication is handled by `sessionStorage` key `zxt-viewed` (array of seen note IDs) — the same note is only counted once per browser session.
 - Homepage "Featured notes" sorts cards by online view count (descending) and CSS hides cards past the third.
-- Fallback: if the Worker fetch fails, counts gracefully degrade to zero — the page still renders normally.
+- Fallback / graceful degradation: the Worker's `*.workers.dev` domain can be blocked or time out on some networks (e.g. mainland China → `net::ERR_CONNECTION_TIMED_OUT`), even though the data is intact and reachable elsewhere (curl from abroad works). `fetchNoteViews()` has a 4s `AbortController` timeout and returns **`null`** on any failure (distinct from `{}` = "loaded but 0"). When `null`, `updateNoteViewDisplays(null)` **hides** the count spans (clears `data-en`/`data-zh` so a language toggle can't repaint "0") and `sortNoteCardsByViews` is skipped (cards keep default date order). So an unreachable Worker shows *no* count rather than a misleading "0 views"; reachable visitors see real counts + sorting.
 - DOM hooks (`data-note-view-count`, `data-note-view-root`, `data-note-card`, `data-sort-notes-by-views`, `data-note-id`) are unchanged; tests pass.
 
 ## Sidebar UI
