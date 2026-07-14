@@ -355,12 +355,19 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
         const viewedKey = "zxt-viewed";
 
         async function fetchNoteViews() {
+          // Returns null (not {}) when counts are unavailable — lets callers
+          // distinguish "unreachable" from "loaded, value is 0". The Worker's
+          // *.workers.dev domain can be blocked/timeout on some networks, so a
+          // 4s AbortController prevents the browser hanging for ~30s.
           try {
-            const res = await fetch(`${viewsApi}/counts`);
-            if (!res.ok) return {};
+            const ctrl = new AbortController();
+            const timer = setTimeout(() => ctrl.abort(), 4000);
+            const res = await fetch(`${viewsApi}/counts`, { signal: ctrl.signal });
+            clearTimeout(timer);
+            if (!res.ok) return null;
             return await res.json();
           } catch {
-            return {};
+            return null;
           }
         }
 
@@ -401,8 +408,20 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
               continue;
             }
 
+            // Counts unavailable (fetch failed/blocked): hide the span entirely
+            // rather than misleadingly showing "0 views". Clear the bilingual
+            // datasets so a language toggle can't repaint it back to "0".
+            if (views == null) {
+              counter.hidden = true;
+              counter.textContent = "";
+              delete counter.dataset.en;
+              delete counter.dataset.zh;
+              continue;
+            }
+
             const noteId = noteIdForElement(counter);
             const count = noteId ? Number(views[noteId] ?? 0) : 0;
+            counter.hidden = false;
             counter.dataset.en = noteViewLabel(count, "en");
             counter.dataset.zh = noteViewLabel(count, "zh");
             counter.textContent = noteViewLabel(count, language);
@@ -462,7 +481,8 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
         }
 
         // Latest known counts, kept in memory so language toggles can repaint.
-        let noteViews = {};
+        // null = not loaded / unavailable → counts stay hidden (no "0" flash).
+        let noteViews = null;
 
         applyLanguage(currentLanguage());
         applyTheme(currentTheme(), false);
@@ -474,12 +494,12 @@ const pageTitle = title === "ZXT Notes" ? title : `${title} | ZXT Notes`;
             fetchNoteViews(),
             incrementCurrentNoteView()
           ]);
-          noteViews = counts && typeof counts === "object" ? counts : {};
-          if (bump && Number.isFinite(bump.count)) {
+          noteViews = counts && typeof counts === "object" ? counts : null;
+          if (bump && noteViews && Number.isFinite(bump.count)) {
             noteViews[bump.noteId] = bump.count;
           }
-          updateNoteViewDisplays(noteViews);
-          sortNoteCardsByViews(noteViews);
+          updateNoteViewDisplays(noteViews);   // null → hides counts
+          if (noteViews) sortNoteCardsByViews(noteViews);   // unreachable → keep default (date) order
         })();
 
         for (const toggle of document.querySelectorAll("[data-language-toggle]")) {
