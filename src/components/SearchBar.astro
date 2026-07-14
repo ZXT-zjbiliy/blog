@@ -19,7 +19,19 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
       data-placeholder-zh="搜索笔记、项目、主题……"
       autocomplete="off"
       aria-label="Search site content"
+      role="combobox"
+      aria-expanded="false"
+      aria-controls="search-dropdown"
+      aria-autocomplete="list"
     />
+    <button
+      class="search-clear"
+      type="button"
+      data-search-clear
+      hidden
+      aria-label="Clear search"
+      title="Clear search"
+    >×</button>
     <button
       class="search-fulltext-btn"
       type="button"
@@ -30,14 +42,14 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     >Full text</button>
   </div>
 
-  <div class="search-dropdown" data-search-dropdown hidden>
+  <div class="search-dropdown" id="search-dropdown" data-search-dropdown hidden>
     <div class="search-tag-panel" data-search-tag-panel>
       <p class="search-panel-label" data-zh="按标签筛选">Filter by tag</p>
       <div class="tag-marquee" data-search-all-tags></div>
     </div>
-    <ul class="search-results" data-search-results hidden></ul>
-    <p class="search-empty" data-search-empty hidden data-zh="没有找到结果">No results found</p>
-    <p class="search-loading" data-search-loading hidden data-zh="正在加载全文索引…">Loading full-text index…</p>
+    <ul class="search-results" data-search-results role="listbox" aria-label="Search results" hidden></ul>
+    <p class="search-empty" data-search-empty hidden data-zh="没有找到结果" role="status">No results found</p>
+    <p class="search-loading" data-search-loading hidden data-zh="正在加载全文索引…" role="status">Loading full-text index…</p>
   </div>
 </div>
 
@@ -92,6 +104,30 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     outline: none;
   }
 
+  .search-clear {
+    flex: 0 0 auto;
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    border: 0;
+    border-radius: var(--radius-pill);
+    background: var(--surface-muted);
+    color: var(--muted);
+    cursor: pointer;
+    font: inherit;
+    font-size: 1.1rem;
+    line-height: 1;
+    transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+  }
+
+  .search-clear[hidden] { display: none; }
+
+  .search-clear:hover {
+    background: color-mix(in srgb, var(--accent) 16%, var(--surface-muted));
+    color: var(--accent);
+  }
+
   .search-fulltext-btn {
     flex: 0 0 auto;
     border: 1px solid var(--line);
@@ -124,11 +160,12 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     gap: 5px;
     border: 1px solid var(--accent);
     border-radius: var(--radius);
-    background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+    background: color-mix(in srgb, var(--accent) 28%, var(--surface-muted));
     color: var(--accent-strong);
     font-size: var(--font-size-sm);
     font-weight: 600;
     padding: 3px 8px;
+    box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent);
   }
 
   .chip button {
@@ -194,6 +231,18 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
 
   .tag-marquee:hover :global(.tag-track) {
     animation-play-state: paused;
+  }
+
+  /* Touch devices have no hover: keep the row static & scrollable so tags are
+     tappable instead of gliding away under the finger. */
+  @media (hover: none) {
+    .tag-marquee {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    :global(.tag-track) {
+      animation: none;
+    }
   }
 
   :global(.tag-track ul) {
@@ -266,9 +315,10 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   }
 
   .search-results li a:hover,
-  .search-results li a:focus {
+  .search-results li a:focus,
+  .search-results li.kb-active a {
     border-left-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 7%, var(--surface));
+    background: color-mix(in srgb, var(--accent) 10%, var(--surface));
   }
 
   .result-badge {
@@ -394,6 +444,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   const resultsEl = wrap.querySelector<HTMLElement>("[data-search-results]")!;
   const emptyEl = wrap.querySelector<HTMLElement>("[data-search-empty]")!;
   const loadingEl = wrap.querySelector<HTMLElement>("[data-search-loading]")!;
+  const clearBtn = wrap.querySelector<HTMLButtonElement>("[data-search-clear]")!;
 
   // ── State ────────────────────────────────────────────────────────────────
   let indexData: SearchIndex | null = null;   // lightweight — loaded on first open
@@ -403,6 +454,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   let activeQuery = "";
   let activeTagFilters: string[] = [];  // English tag/stack values
   let fulltextMode = false;
+  let kbIndex = -1;  // keyboard-highlighted result row (-1 = none)
 
   // ── Language helper ──────────────────────────────────────────────────────
   function isZh(): boolean {
@@ -452,11 +504,14 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   // ── Dropdown open / close ────────────────────────────────────────────────
   function openDropdown() {
     dropdownEl.hidden = false;
+    inputEl.setAttribute("aria-expanded", "true");
     refreshDropdownContent();
   }
 
   function closeDropdown() {
     dropdownEl.hidden = true;
+    inputEl.setAttribute("aria-expanded", "false");
+    kbIndex = -1;
   }
 
   // ── Tag panel ────────────────────────────────────────────────────────────
@@ -506,6 +561,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     if (activeTagFilters.includes(en)) return;
     activeTagFilters.push(en);
     renderChips();
+    updateClearButton();
     search();
     // Update tag pill state
     allTagsEl.querySelectorAll<HTMLElement>("[data-tag-en]").forEach((el) => {
@@ -516,6 +572,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   function removeTagFilter(en: string) {
     activeTagFilters = activeTagFilters.filter((t) => t !== en);
     renderChips();
+    updateClearButton();
     search();
     allTagsEl.querySelectorAll<HTMLElement>("[data-tag-en]").forEach((el) => {
       el.classList.toggle("active-tag", activeTagFilters.includes(el.dataset.tagEn ?? ""));
@@ -550,6 +607,7 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
   // ── Results ───────────────────────────────────────────────────────────────
   function renderResults(matched: SearchEntry[]) {
     resultsEl.innerHTML = "";
+    kbIndex = -1;  // reset keyboard highlight whenever results change
     if (matched.length === 0) {
       resultsEl.hidden = true;
       emptyEl.hidden = false;
@@ -559,9 +617,11 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     resultsEl.hidden = false;
 
     const q = activeQuery.trim();
-    for (const entry of matched.slice(0, 20)) {
+    matched.slice(0, 20).forEach((entry, i) => {
       const li = document.createElement("li");
       li.className = "result-item " + entry.type;
+      li.id = `search-result-${i}`;
+      li.setAttribute("role", "option");
       const a = document.createElement("a");
       a.href = entry.url;
 
@@ -609,7 +669,31 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
       a.appendChild(body);
       li.appendChild(a);
       resultsEl.appendChild(li);
-    }
+    });
+  }
+
+  // ── Keyboard navigation over the result rows ──────────────────────────────
+  function resultRows(): HTMLLIElement[] {
+    return Array.from(resultsEl.querySelectorAll<HTMLLIElement>("li.result-item"));
+  }
+
+  function setKbActive(next: number) {
+    const rows = resultRows();
+    if (rows.length === 0) return;
+    // Wrap around
+    kbIndex = (next + rows.length) % rows.length;
+    rows.forEach((row, i) => row.classList.toggle("kb-active", i === kbIndex));
+    const active = rows[kbIndex];
+    active.scrollIntoView({ block: "nearest" });
+    inputEl.setAttribute("aria-activedescendant", active.id);
+  }
+
+  function openKbActive(): boolean {
+    const rows = resultRows();
+    if (kbIndex < 0 || kbIndex >= rows.length) return false;
+    const link = rows[kbIndex].querySelector("a");
+    if (link) { window.location.href = (link as HTMLAnchorElement).href; return true; }
+    return false;
   }
 
   // ── Search logic ──────────────────────────────────────────────────────────
@@ -751,14 +835,47 @@ const { searchIndexUrl, tokensUrl } = Astro.props;
     }
   }
 
+  // Clear button is shown whenever there's a query or any active tag filters.
+  function updateClearButton() {
+    clearBtn.hidden = activeQuery.trim() === "" && activeTagFilters.length === 0;
+  }
+
+  function clearAll() {
+    activeQuery = "";
+    inputEl.value = "";
+    activeTagFilters = [];
+    renderChips();
+    updateClearButton();
+    search();
+    renderTagPanel();
+    inputEl.focus();
+  }
+
   // ── Events ────────────────────────────────────────────────────────────────
   inputEl.addEventListener("focus", () => openDropdown());
 
   inputEl.addEventListener("input", () => {
     activeQuery = inputEl.value;
+    updateClearButton();
     openDropdown();
     search();
   });
+
+  // Keyboard navigation over results
+  inputEl.addEventListener("keydown", (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (dropdownEl.hidden) openDropdown();
+      setKbActive(kbIndex + 1);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setKbActive(kbIndex - 1);
+    } else if (e.key === "Enter") {
+      if (openKbActive()) e.preventDefault();
+    }
+  });
+
+  clearBtn.addEventListener("click", () => clearAll());
 
   fulltextBtn.addEventListener("click", async () => {
     fulltextMode = !fulltextMode;

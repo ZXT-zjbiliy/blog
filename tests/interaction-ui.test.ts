@@ -46,7 +46,10 @@ describe("interactive site chrome", () => {
     expect(search).toContain("data-search-dropdown");
     expect(search).toContain("data-search-all-tags");
     expect(search).toContain("data-search-results");
+    expect(search).toContain("data-search-clear");
     expect(search).toContain("data-placeholder-zh");
+    expect(search).toContain('role="listbox"');
+    expect(search).toContain('role="combobox"');
 
     expect(homepage).toContain("<SearchBar");
     expect(homepage).toContain("searchIndexUrl");
